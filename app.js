@@ -18,7 +18,9 @@
   // ---------- helpers ----------
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const redact = (t) => esc(t).replace(/\[\[(.+?)\]\]/g, '<span class="redact" tabindex="0" title="Classified. Hover to reveal">$1</span>');
-  const plain = (t) => String(t).replace(/\[\[(.+?)\]\]/g, "█████");
+  const plain = (t) => String(t).replace(/\[\[(.+?)\]\]/g, "$1");
+  const MEET = D.MEETINGS || {};
+  const fmtMonth = (s) => { const d = date(s); return `${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`; };
   const date = (s) => new Date(s + "T12:00:00");
   const fmt = (s) => { const d = date(s); return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`; };
   const initials = (n) => n.split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -33,9 +35,11 @@
   };
   const elapsed = (op) => clamp((AS_OF - date(op.start)) / (date(op.end) - date(op.start)));
   const outcomePct = (o) => (o.target === o.baseline ? 1 : clamp((o.current - o.baseline) / (o.target - o.baseline)));
+  const STATE_LBL = { met: "Delivered", on: "On track", pending: "Pending", behind: "Behind" };
   const outcomeState = (o, op) => {
+    if (o.state) return [o.state, STATE_LBL[o.state] || o.state];
     const p = outcomePct(o);
-    if (p >= 1) return ["met", "Target met"];
+    if (p >= 1) return ["met", "Delivered"];
     const e = elapsed(op);
     if (op.status === "hold" || e < 0.25 || p >= e * 0.8) return ["on", "On track"];
     return ["behind", "Behind"];
@@ -51,14 +55,14 @@
     const live = OPS.filter((o) => ["recon", "active", "extraction"].includes(o.status)).length;
     const objs = OPS.flatMap((o) => o.objectives || []);
     const outs = OPS.flatMap((op) => (op.outcomes || []).map((o) => outcomeState(o, op)[0]));
-    const good = outs.filter((s) => s !== "behind").length;
+    const good = outs.filter((s) => s === "met").length;
     const next = OPS.flatMap((op) => (op.phases || []).map((p) => ({ op, p })))
       .filter(({ p }) => date(p.start) > AS_OF)
       .sort((a, b) => date(a.p.start) - date(b.p.start))[0];
     $("#kpis").innerHTML = `
       <div class="kpi"><span class="v num">${live}<small> / ${OPS.length}</small></span><span class="label">Live operations</span></div>
       <div class="kpi"><span class="v num">${objs.filter((o) => o.done).length}<small> / ${objs.length}</small></span><span class="label">Objectives cleared</span></div>
-      <div class="kpi"><span class="v num">${good}<small> / ${outs.length}</small></span><span class="label">Outcomes met or on track</span></div>
+      <div class="kpi"><span class="v num">${good}<small> / ${outs.length}</small></span><span class="label">Outcomes delivered</span></div>
       <div class="kpi"><span class="v sm">${next ? `${esc(next.op.codename)}` : "None scheduled"}</span><span class="label">${next ? `Next: ${esc(next.p.name)} · ${fmt(next.p.start)}` : "Next milestone"}</span></div>`;
   })();
 
@@ -384,13 +388,27 @@
   })();
 
   // ---------- intel log ----------
+  (function briefings() {
+    const el = $("#briefings");
+    const list = Object.values(MEET).sort((a, b) => date(b.date) - date(a.date));
+    if (!el || !list.length) { if (el) el.hidden = true; return; }
+    el.innerHTML = list.map((m) => `
+      <a class="brief-card" href="${esc(m.url)}" target="_blank" rel="noopener" data-cursor="Open notes">
+        <span class="label num">${fmt(m.date)} · ${m.attendees.length} attendees</span>
+        <b>${esc(m.title)}</b>
+        <span class="brief-sum">${esc(m.summary)}</span>
+        <span class="brief-who">${m.attendees.map((n) => `<span class="av" title="${esc(n)}">${initials(n)}</span>`).join("")}</span>
+        <span class="open-cue">Meeting notes</span>
+      </a>`).join("");
+  })();
+
   (function log() {
     const rows = OPS.flatMap((op) => (op.intel || []).map((i) => ({ op, ...i })))
-      .sort((a, b) => date(b.date) - date(a.date)).slice(0, 8);
+      .sort((a, b) => date(b.date) - date(a.date)).slice(0, 10);
     const el = $("#log");
     el.innerHTML = rows.map((r) => `
       <button class="log-row" type="button" data-op="${r.op.id}" data-cursor="Open file">
-        <span class="label num">${fmt(r.date)}</span><span class="c">${esc(r.op.codename)}</span><span>${esc(r.text)}</span><span class="arrow">→</span>
+        <span class="label num">${fmt(r.date)}</span><span class="c">${esc(r.op.codename)}</span><span>${redact(r.text)}</span><span class="arrow">→</span>
       </button>`).join("");
     el.addEventListener("click", (e) => { const r = e.target.closest("[data-op]"); if (r) openFile(r.dataset.op, r); });
   })();
@@ -414,6 +432,13 @@
     }).join("");
     const outcomes = (op.outcomes || []).map((o) => {
       const [k, lbl] = outcomeState(o, op);
+      if (o.value !== undefined) {
+        return `<div class="oc">
+        <div class="oc-top"><b>${esc(o.label)}</b><span class="pill p-${k}">${lbl}</span></div>
+        <div class="oc-nums"><strong>${esc(o.value)}</strong></div>
+        ${o.detail ? `<p class="oc-detail">${redact(o.detail)}</p>` : ""}
+      </div>`;
+      }
       return `<div class="oc">
         <div class="oc-top"><b>${esc(o.label)}</b><span class="pill p-${k}">${lbl}</span></div>
         <div class="oc-nums"><strong>${fmtVal(o.current, o.unit)}</strong>
@@ -432,7 +457,7 @@
         <div class="facts">
           <div class="fact"><span class="label">Lead</span><b>${esc(op.lead)}</b></div>
           <div class="fact"><span class="label">Pillar</span><b>${esc(op.pillar)}</b></div>
-          <div class="fact"><span class="label">Window</span><b class="num">${fmt(op.start)} – ${fmt(op.end)}</b></div>
+          <div class="fact"><span class="label">Window${op.estimatedEnd ? " · end est." : ""}</span><b class="num">${fmt(op.start)} – ${op.estimatedEnd ? fmtMonth(op.end) : fmt(op.end)}</b></div>
           <div class="fact"><span class="label">Objectives</span><b class="num">${Math.round(p * 100)}% cleared</b></div>
         </div>
       </div>
@@ -440,14 +465,14 @@
       <div class="d-cols">
         <div style="display:grid;gap:56px;align-content:start">
           <div class="d-sec"><h3>The mission</h3><p>${redact(op.mission)}</p></div>
-          <div class="d-sec"><h3>Objectives</h3><ul class="checks">${(op.objectives || []).map((o) => `<li class="${o.done ? "done" : ""}"><span class="box" aria-hidden="true"></span><span>${redact(o.text)}</span></li>`).join("")}</ul></div>
+          <div class="d-sec"><h3>Objectives</h3><ul class="checks">${(op.objectives || []).map((o) => `<li class="${o.done ? "done" : ""}"><span class="box" aria-hidden="true"></span><span>${redact(o.text)}</span>${o.owner || o.due ? `<span class="who">${esc(o.owner || "")}${o.due ? ` · due ${fmt(o.due)}` : ""}</span>` : ""}</li>`).join("")}</ul></div>
           <div class="d-sec"><h3>Phases</h3><div class="phases">${phases}</div></div>
           <div class="d-sec"><h3>Team</h3><div class="roster">${op.team.map((n) => `<span class="person ${n === op.lead ? "lead" : ""}"><span class="av">${initials(n)}</span>${esc(n)}${n === op.lead ? " <em>Lead</em>" : ""}</span>`).join("")}</div></div>
         </div>
         <div style="display:grid;gap:56px;align-content:start">
           <div class="d-sec"><h3>Outcomes</h3><div class="outcomes">${outcomes || '<p class="label">No outcomes defined yet</p>'}</div></div>
           <div class="d-sec"><h3>Risks</h3><div>${(op.risks || []).length ? op.risks.map((r) => `<div class="risk"><span class="sev sev-${r.sev}">${r.sev === "med" ? "Medium" : r.sev}</span><span>${redact(r.text)}</span></div>`).join("") : '<p class="label">No open risks</p>'}</div></div>
-          <div class="d-sec"><h3>Intel log</h3><div class="feed">${(op.intel || []).map((i) => `<div><time datetime="${i.date}">${fmt(i.date)}</time><span>${redact(i.text)}</span></div>`).join("")}</div></div>
+          <div class="d-sec"><h3>Intel log</h3><div class="feed">${(op.intel || []).map((i) => `<div><time datetime="${i.date}">${fmt(i.date)}</time><span>${redact(i.text)}${i.src && MEET[i.src] ? ` <a class="src" href="${esc(MEET[i.src].url)}" target="_blank" rel="noopener">Meeting notes ↗</a>` : ""}</span></div>`).join("")}</div></div>
         </div>
       </div>`;
 
@@ -496,7 +521,8 @@
     q = q.trim().toLowerCase();
     const ops = OPS.map((op) => ({
       kind: `${roman(idx(op))} · ${STATUS[op.status]}`, name: op.codename, sub: op.title,
-      hay: [op.codename, op.title, op.pillar, op.lead, ...op.team, plain(op.vision), op.id].join(" ").toLowerCase(),
+      hay: [op.codename, op.title, op.pillar, op.lead, ...op.team, plain(op.vision), plain(op.mission), op.id,
+        ...(op.objectives || []).map((o) => `${plain(o.text)} ${o.owner || ""}`)].join(" ").toLowerCase(),
       go: () => openFile(op.id)
     }));
     const secs = SECTIONS.map((s) => ({ ...s, hay: s.name.toLowerCase() }));

@@ -21,7 +21,9 @@ Deep links: `index.html#BO-003` opens that file directly.
 All content lives in `data.js`. Edit an entry or copy one to add an operation.
 Wrap text in `[[double brackets]]` to render it as a redaction bar that reveals on hover.
 
-The six project names are real; dates, metrics, teams and intel are placeholders.
+Content comes from the Black Ops sync notes (08/11, 09/08, 09/22/2026) in ClickUp. Codenames,
+impact/effort scores and phase end dates are estimates. Add a meeting to `MEETINGS` and
+reference it from an intel entry with `src` to link the update back to its notes.
 
 ## Running it
 

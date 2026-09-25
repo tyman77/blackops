@@ -1,146 +1,196 @@
 /*
  * BLACK OPS: initiative data.
  * Everything on the dashboard is generated from this file.
- * Add an operation by copying one object in OPERATIONS and editing it.
  *
- * The six project names are real. Codenames, dates, metrics, teams and intel
- * below are PLACEHOLDERS to show the layout; replace them with real figures.
+ * Sourced from the Black Ops sync notes of 08/11, 09/08 and 09/22/2026 (ClickUp).
+ * Codenames, impact/effort scores and phase end dates are planning estimates;
+ * adjust them as the team firms up targets.
  *
  * Text tip: wrap words in [[double brackets]] to show them as a redaction bar
- * that reveals on hover / tap.
+ * that reveals on hover / tap. Used here for client project names.
  *
- * status:   "recon" | "active" | "extraction" | "complete" | "hold"
+ * status:     "recon" | "active" | "extraction" | "complete" | "hold"
  * impact / effort: 1–10 (drives the Radar view)
- * outcomes: raw numbers; `better` says which direction is good.
+ * objectives: { text, done, owner?, due? }
+ * outcomes:   { label, value, detail, state: "met" | "on" | "pending" | "behind" }
+ * intel:      { date, text, src? }  src = key into MEETINGS
  */
 window.BLACKOPS = {
   unit: "Summit Black Ops",
-  mandate:
-    "The team's special projects: the standards, tools and systems that make every install faster, cleaner and more profitable.",
+  mandate: "Delete steps. Simplify steps. Then accelerate and automate, across sales, engineering, warehouse and install.",
   asOf: "2026-09-25",
+
+  MEETINGS: {
+    "0811": {
+      date: "2026-08-11",
+      title: "Black Ops Updates",
+      url: "https://app.clickup.com/90131236057/docs/2ky3v16t-230833",
+      attendees: ["Adam Hoekstra", "Travis Leatherman", "Cameron Fries", "Tyson Wiens", "Ryan Lynette", "Ben Blevins"],
+      summary: "First-week check-in. Apex takes over contracts and change orders, Topo prototype previewed, pre-install prep and networked analog breakout pilots proposed."
+    },
+    "0908": {
+      date: "2026-09-08",
+      title: "Black Ops Updates",
+      url: "https://app.clickup.com/90131236057/docs/2ky3v16t-252413",
+      attendees: ["Levi Connell", "Jacob Cody", "Ben Thompson", "Tyson Wiens", "Cameron Fries", "Travis Leatherman"],
+      summary: "CAT-to-multipin PCBs at V1/V2, TV location and kit standards, pre-made rigging slings, staging by package, Topo skeleton shown to engineers, field supply accounts opened."
+    },
+    "0922": {
+      date: "2026-09-22",
+      title: "Black Ops Updates",
+      url: "https://app.clickup.com/90131236057/docs/2ky3v16t-263493",
+      attendees: ["Adam Hoekstra", "Ryan Lynette", "Levi Connell", "Ben Thompson", "Tyson Wiens", "Jacob Cody", "Cameron Fries", "Travis Leatherman"],
+      summary: "Nutshell exit targeting $15K/yr, nightly bill checks and AI AR emails live, Flight Plan adopted, area data model confirmed, analog-over-Cat6 PCBs arrived."
+    }
+  },
 
   OPERATIONS: [
     {
       id: "BO-001",
       codename: "COPPER LINE",
       title: "Cat6 Infrastructure",
-      pillar: "Field Standards",
+      pillar: "Engineering",
       status: "active",
       clearance: "SECRET",
-      lead: "Tyson",
-      team: ["Tyson", "Field Lead", "Project Mgmt"],
-      start: "2026-06-01",
-      end: "2026-12-15",
-      impact: 8,
-      effort: 6,
+      lead: "Adam Hoekstra",
+      team: ["Adam Hoekstra", "Cameron Fries", "Travis Leatherman", "Ben Thompson"],
+      start: "2026-08-04",
+      end: "2027-01-31",
+      estimatedEnd: true,
+      impact: 9,
+      effort: 8,
       vision:
-        "Every cable we pull is labeled, tested and documented the same way, on every job, by every crew.",
+        "Analog audio rides on shielded Cat6 with pre-made breakouts, so nobody solders or skins a snake on site again.",
       mission:
-        "Set one Cat6 infrastructure standard: pathway and termination specs, a labeling scheme, certification testing, and as-built documentation that hands off cleanly to service. Pilot on [[two upcoming commercial jobs]].",
+        "Replace poor-man snakes and field terminations with networked breakouts: Cat6 to stage plates, RJ45 to DB25/XLR at the rack, and custom CAT-to-multipin and CAT-to-XLR PCBs. The rack side becomes an enclosed, modular 1RU product that expands by adding units.",
       objectives: [
-        { text: "Termination and pathway spec written", done: true },
-        { text: "Labeling scheme and label templates", done: true },
-        { text: "Certification test workflow and report format", done: false },
-        { text: "As-built handoff package to service", done: false }
+        { text: "Define networked breakout architecture (RJ45 → DB25 → XLR, terminal-block RIO option)", done: true, owner: "Adam" },
+        { text: "V1 / V2 CAT-to-multipin and CAT-to-XLR PCB prototypes, incl. W1 to 3× RJ45", done: true, owner: "Cameron" },
+        { text: "Test-fit PCB chassis connectors in plates and confirm rear mounting", done: true, owner: "Ben T." },
+        { text: "Run a 150–200 ft test and validate the W1 Medusa 12-XLR breakout", done: false, owner: "Adam" },
+        { text: "Research grounding, pin-1, EMI, solder and corrosion standards; write a test plan", done: false, owner: "Adam" },
+        { text: "Build vs. buy standard for RJ45/DB25/XLR breakout assemblies", done: false, owner: "Adam" },
+        { text: "Enclosed modular 1RU rack unit that looks like a finished product", done: false, owner: "Cameron" },
+        { text: "Pilot the swap from analog to shielded Cat6 on a signed project", done: false, owner: "Cameron" }
       ],
       outcomes: [
-        { label: "Drops failing certification", unit: "%", baseline: 6, current: 3.5, target: 1, better: "down" },
-        { label: "Jobs with complete as-builts", unit: "%", baseline: 35, current: 60, target: 100, better: "up" },
-        { label: "Rework trips per job", unit: "", baseline: 2.2, current: 1.4, target: 0.5, better: "down" }
+        { label: "Prototype hardware", value: "PCBs in hand", detail: "PCBs, back boxes and pre-made Phoenix-to-XLR test cables received or on order.", state: "met" },
+        { label: "Audio quality over distance", value: "150–200 ft", detail: "Target run length for the first listening and interference test.", state: "pending" },
+        { label: "On-site terminations", value: "Zero solder", detail: "Pre-made harnesses and chassis connectors replace field soldering.", state: "pending" },
+        { label: "Rack expandability", value: "+16 / +64", detail: "Add inputs by adding another 1RU unit.", state: "pending" }
       ],
       phases: [
-        { name: "Recon", start: "2026-06-01", end: "2026-06-30" },
-        { name: "Standard", start: "2026-07-01", end: "2026-10-15" },
-        { name: "Pilot", start: "2026-10-16", end: "2026-12-15" }
+        { name: "Concept", start: "2026-08-04", end: "2026-09-07" },
+        { name: "Prototype", start: "2026-09-08", end: "2026-10-31" },
+        { name: "Field pilot", start: "2026-11-01", end: "2027-01-31" }
       ],
       risks: [
-        { text: "Subcontracted crews trained to a different standard", sev: "high" },
-        { text: "Tester availability during peak season", sev: "med" }
+        { text: "Grounding and pin-1 behaviour that won't show up in a lab test", sev: "high" },
+        { text: "EMI, solder type and conductor material affecting signal integrity over time", sev: "med" },
+        { text: "Rack unit looking like a bare panel instead of a finished product", sev: "low" }
       ],
       intel: [
-        { date: "2026-09-18", text: "Label templates printed and in the trucks. First job fully labeled to the new scheme." },
-        { date: "2026-08-27", text: "Termination and pathway spec signed off." }
+        { date: "2026-09-22", text: "PCBs for analog over shielded Cat6 arrived. Back boxes ordered with Lex; W1 Medusa 12-XLR breakout ordered for testing.", src: "0922" },
+        { date: "2026-09-08", text: "V1 PCBs in hand, V2 W1-to-3×RJ45 built. PCB chassis connectors ordered: cheaper than soldered, same exterior look.", src: "0908" },
+        { date: "2026-08-11", text: "Networked analog breakouts named a high-impact way to cut assembly and on-site labor.", src: "0811" }
       ]
     },
     {
       id: "BO-002",
       codename: "DRY RUN",
       title: "Shop Staging",
-      pillar: "Operations",
+      pillar: "Warehouse",
       status: "active",
       clearance: "SECRET",
-      lead: "Shop Lead",
-      team: ["Shop Lead", "Tyson", "Field Lead"],
-      start: "2026-05-01",
-      end: "2026-11-30",
-      impact: 9,
+      lead: "Ryan Lynette",
+      team: ["Ryan Lynette", "Ben Thompson", "Levi Connell", "Adam Hoekstra"],
+      start: "2026-08-04",
+      end: "2026-12-31",
+      estimatedEnd: true,
+      impact: 8,
       effort: 5,
       vision:
-        "Systems are built, programmed and tested in the shop, so the site visit is install and go.",
+        "Product arrives on site sorted by area, labeled in pull order and ready to hang, so crews install instead of rummaging.",
       mission:
-        "Stand up a staging bay where racks are built, devices are configured and systems are burned in before they ship. Every staged system leaves with a test sheet and a labeled rack. Target: [[all rack builds over 12U]].",
+        "Do the prep in the shop: palletize by area on receiving, re-inventory before shipping, pre-address and label lighting, build standard TV kits and converter boards in batches, and pre-make custom cables for upcoming jobs.",
       objectives: [
-        { text: "Staging bay built out with power and network", done: true },
-        { text: "Rack build and burn-in checklist", done: true },
-        { text: "Configuration backups saved before shipping", done: true },
-        { text: "Staging scheduled in every project plan", done: false }
+        { text: "Stage pallets by package: PA, video, lighting, FOH", done: true, owner: "Levi" },
+        { text: "Pre-address, pre-clamp and pre-label lighting fixtures before shipping", done: true, owner: "Levi" },
+        { text: "Area prints on every warehouse label template", done: false, owner: "Tyson" },
+        { text: "Re-inventory and palletize [[Flatirons]] by area", done: false, owner: "Ryan & Ben T." },
+        { text: "Batch pallets by area during receiving", done: false, owner: "Ben T." },
+        { text: "Finalize TV kit contents and a quarterly build of 100–150 packs", done: false, owner: "Adam & Ryan" },
+        { text: "Wall-mounted pegboard converter board sample", done: false, owner: "Levi" },
+        { text: "Monthly pre-make of custom cables for upcoming projects", done: false, owner: "Ryan" }
       ],
       outcomes: [
-        { label: "On-site programming hours per job", unit: "h", baseline: 14, current: 6, target: 4, better: "down" },
-        { label: "Devices DOA on site", unit: "%", baseline: 4, current: 1.2, target: 0.5, better: "down" },
-        { label: "Racks staged before ship", unit: "%", baseline: 10, current: 65, target: 90, better: "up" }
+        { label: "Lighting install labor", value: "−1 day", detail: "Pre-addressed, clamped and labeled fixtures saved one person a full day on [[WWK]].", state: "met" },
+        { label: "Pallets staged by area", value: "Pilot", detail: "[[Flatirons]] pulled this week, reorganized next week, shipped in a Conex by daily pull order.", state: "on" },
+        { label: "TV kit build cadence", value: "100–150 / qtr", detail: "Toggles, Velcro clips, patch and network cables, 2 ft 12G BNCs, branded box.", state: "pending" }
       ],
       phases: [
-        { name: "Recon", start: "2026-05-01", end: "2026-05-31" },
-        { name: "Build-out", start: "2026-06-01", end: "2026-08-15" },
-        { name: "Rollout", start: "2026-08-16", end: "2026-11-30" }
+        { name: "Package staging", start: "2026-08-04", end: "2026-09-21" },
+        { name: "Area pilot", start: "2026-09-22", end: "2026-10-31" },
+        { name: "Standard", start: "2026-11-01", end: "2026-12-31" }
       ],
       risks: [
-        { text: "Shop space competes with inventory storage", sev: "med" },
-        { text: "Equipment arriving too late to stage", sev: "high" }
+        { text: "Pallet limits make room-level separation impossible; batching by area instead", sev: "med" },
+        { text: "Room location unknown at order time until Topo backfills it", sev: "med" },
+        { text: "Converter options (3G, 12G, none) multiplying TV kit SKUs", sev: "low" }
       ],
       intel: [
-        { date: "2026-09-23", text: "Staged rack went live on site in under 2 hours." },
-        { date: "2026-09-05", text: "Burn-in checklist caught a failed switch before it shipped." }
+        { date: "2026-09-22", text: "[[Flatirons]] picked to pilot area-based re-inventory and palletization. Assembly label already prints area.", src: "0922" },
+        { date: "2026-09-22", text: "TV kit contents defined; Rachel made Summit-branded stickers so kits ship as a finished product.", src: "0922" },
+        { date: "2026-09-08", text: "Pre-labeled lighting saved a full day on [[WWK]]. Staging by package (PA / video / lighting / FOH) adopted as the interim step.", src: "0908" }
       ]
     },
     {
       id: "BO-003",
       codename: "ADVANCE PARTY",
       title: "Pre-Install Prep",
-      pillar: "Operations",
-      status: "recon",
+      pillar: "Install",
+      status: "active",
       clearance: "CONFIDENTIAL",
-      lead: "Project Mgmt",
-      team: ["Project Mgmt", "Field Lead"],
-      start: "2026-09-01",
+      lead: "Ryan Lynette",
+      team: ["Ryan Lynette", "Ben Blevins", "Ben Thompson", "Levi Connell"],
+      start: "2026-08-04",
       end: "2027-01-31",
-      impact: 7,
-      effort: 3,
+      estimatedEnd: true,
+      impact: 8,
+      effort: 6,
       vision:
-        "No crew shows up to a site that isn't ready for them.",
+        "When the crew arrives, points are rigged, locations are laid out and every decision is already made.",
       mission:
-        "A pre-install checklist and site walk that confirms pathways, power, backboxes, access and material kitting before the crew is scheduled. Kits are pulled and staged the day before.",
+        "A 3–4 week prep window once a project hits go: foreman visits during assembly, pre-rigging, layout of TV, sight-line and camera locations, and pre-commissioning. Small scoped teams handle wire pulls, terminations or rigging ahead of the main trip. One live site-survey checklist follows the job from first sales contact to install.",
       objectives: [
-        { text: "Interview crews on the top site-readiness failures", done: true },
-        { text: "Pre-install checklist and site walk form", done: false },
-        { text: "Material kitting process with the warehouse", done: false }
+        { text: "Adopt Flight Plan as the single source for schedules, travel and flights", done: true, owner: "Ryan" },
+        { text: "Open ~10 nationwide electrical supply accounts for foremen", done: true, owner: "Ben T." },
+        { text: "Add all foremen to Amazon Business", done: true, owner: "Tyson" },
+        { text: "Switch rigging to pre-made 1/4\" wire-rope slings (2 ft / 3 ft)", done: true, owner: "Ben T." },
+        { text: "Scope a narrow pre-wire trip for [[Evangel Temple]]", done: false, owner: "Ryan" },
+        { text: "Pick a pilot for the 3–4 week prep model and set success metrics", done: false, owner: "Ryan" },
+        { text: "End-to-end site-survey and verification checklist", done: false, owner: "Ryan & Ben B." },
+        { text: "Assess AR / Matterport for digital layout", done: false, owner: "Ben B." }
       ],
       outcomes: [
-        { label: "Trips lost to site not ready", unit: "/mo", baseline: 11, current: 11, target: 2, better: "down" },
-        { label: "Jobs with a completed site walk", unit: "%", baseline: 20, current: 25, target: 95, better: "up" }
+        { label: "Scheduling", value: "Flight Plan", detail: "One place for team schedules, travel days and flights. Called a big win on 09/22.", state: "met" },
+        { label: "Field purchasing", value: "~10 vendors", detail: "Foremen buy strut and all-thread on account instead of shipping or Fastenal.", state: "met" },
+        { label: "On-site install duration", value: "2 wk → 1 wk", detail: "Goal of the prep-window pilot.", state: "pending" }
       ],
       phases: [
-        { name: "Recon", start: "2026-09-01", end: "2026-10-15" },
-        { name: "Build", start: "2026-10-16", end: "2026-12-15" },
-        { name: "Rollout", start: "2027-01-01", end: "2027-01-31" }
+        { name: "Enablers", start: "2026-08-04", end: "2026-09-30" },
+        { name: "Pre-trip pilot", start: "2026-10-01", end: "2026-11-30" },
+        { name: "Prep window", start: "2026-12-01", end: "2027-01-31" }
       ],
       risks: [
-        { text: "General contractors not giving early site access", sev: "high" },
-        { text: "Extra site walk adds cost to small jobs", sev: "low" }
+        { text: "Locking crews into a prep window reduces scheduling flexibility", sev: "med" },
+        { text: "Hard to free up a pilot project around current commitments", sev: "med" },
+        { text: "AR measurement accuracy unproven", sev: "low" }
       ],
       intel: [
-        { date: "2026-09-20", text: "Crew interviews done. Top issue: backboxes and pathways missing on arrival." }
+        { date: "2026-09-22", text: "Flight Plan adopted as the source of truth for install scheduling. [[Evangel Temple]] lined up for a 2–3 person pre-wire trip.", src: "0922" },
+        { date: "2026-09-08", text: "Pre-made wire-rope slings replace cut chain; aircraft cable and swaging being phased out. Supply accounts opened.", src: "0908" },
+        { date: "2026-08-11", text: "Vertical alignment model proposed: 3–4 week prep window to finish installs in one week instead of two.", src: "0811" }
       ]
     },
     {
@@ -148,121 +198,186 @@ window.BLACKOPS = {
       codename: "HIGH GROUND",
       title: "Topo Design Model",
       pillar: "Engineering",
-      status: "recon",
+      status: "active",
       clearance: "TOP SECRET",
-      lead: "Engineering",
-      team: ["Engineering", "Tyson", "Estimating"],
-      start: "2026-08-15",
+      lead: "Travis Leatherman",
+      team: ["Travis Leatherman", "Cameron Fries", "Tyson Wiens"],
+      start: "2026-08-04",
       end: "2027-03-31",
-      impact: 9,
-      effort: 8,
+      estimatedEnd: true,
+      impact: 10,
+      effort: 9,
       vision:
-        "One design model per project that drives the drawings, the parts list, the estimate and the install plan.",
+        "One live design model per project that draws the schematics, prints the labels and talks to Apex both ways.",
       mission:
-        "Build a standard topology model for our systems: device types, connections and rooms, with rules that generate riser diagrams and a bill of materials. It becomes the single source for [[Apex Estimating]] and for field documentation.",
+        "A browser-based tool to replace Vectorworks and ConnectCAD: schematics without sheet limits, rack elevations, patch bay labels, pull sheets from scaled plans, and redlines and as-builts as a working model. It syncs with Apex both ways and backfills room locations to order sheets and labels.",
       objectives: [
-        { text: "Define device and connection library", done: true },
-        { text: "Model three past projects end to end", done: false },
-        { text: "Generate BOM from the model", done: false },
-        { text: "Generate riser diagram from the model", done: false }
+        { text: "Browser prototype previewed to the team", done: true, owner: "Travis" },
+        { text: "Skeleton shown to engineers for feedback", done: true, owner: "Travis" },
+        { text: "Import wizard and clean data at import", done: false, owner: "Travis" },
+        { text: "Button behaviours and shortcuts from user testing", done: false, owner: "Travis" },
+        { text: "Apex packages drop standard blocks and layouts", done: false, owner: "Cameron & Travis" },
+        { text: "Signal-mismatch and dead-end detection", done: false, owner: "Cameron & Travis" },
+        { text: "Backfill room locations to order sheets and labels", done: false, owner: "Travis" }
       ],
       outcomes: [
-        { label: "Design hours per project", unit: "h", baseline: 30, current: 30, target: 12, better: "down" },
-        { label: "BOM errors found after award", unit: "/job", baseline: 5, current: 5, target: 1, better: "down" }
+        { label: "Build progress", value: "~60%", detail: "From rough skeleton toward 100% through import and usability passes.", state: "on" },
+        { label: "Tools retired", value: "2", detail: "Vectorworks and ConnectCAD for ID schematics.", state: "pending" },
+        { label: "Apex ↔ Topo sync", value: "Two-way", detail: "Drag into a rack in Topo to populate Apex; change orders shown in the drawing.", state: "pending" }
       ],
       phases: [
-        { name: "Recon", start: "2026-08-15", end: "2026-10-31" },
-        { name: "Model", start: "2026-11-01", end: "2027-01-31" },
-        { name: "Pilot", start: "2027-02-01", end: "2027-03-31" }
+        { name: "Prototype", start: "2026-08-04", end: "2026-09-30" },
+        { name: "Import & UX", start: "2026-10-01", end: "2026-12-15" },
+        { name: "Apex sync", start: "2026-12-16", end: "2027-03-31" }
       ],
       risks: [
-        { text: "Scope creep: modeling every system type at once", sev: "high" },
-        { text: "Design tools don't export clean data", sev: "med" }
+        { text: "Performance is slow; rollout held until it scales", sev: "high" },
+        { text: "Messy source data at import", sev: "med" },
+        { text: "Full missing-gear inference is complex; scoped to dead-end detection first", sev: "low" }
       ],
       intel: [
-        { date: "2026-09-12", text: "Device library at 180 types across network, AV and security." },
-        { date: "2026-08-18", text: "Operation opened. First target: network and cabling topology." }
+        { date: "2026-09-22", text: "Area comes from estimates; Topo will backfill room-level location later.", src: "0922" },
+        { date: "2026-09-08", text: "Skeleton presented to engineers with strong feedback. Next: import wizard and data cleanliness.", src: "0908" },
+        { date: "2026-08-11", text: "Sneak preview: schematics, rack elevations, patch labels and pull sheets in the browser.", src: "0811" }
       ]
     },
     {
       id: "BO-005",
       codename: "PRICE POINT",
       title: "Apex Estimating",
-      pillar: "Revenue",
+      pillar: "Sales",
       status: "active",
       clearance: "SECRET",
-      lead: "Estimating",
-      team: ["Estimating", "Tyson", "Sales"],
-      start: "2026-04-01",
+      lead: "Cameron Fries",
+      team: ["Cameron Fries", "Tyson Wiens", "Jacob Cody"],
+      start: "2026-08-04",
       end: "2026-12-31",
+      estimatedEnd: true,
       impact: 9,
-      effort: 7,
+      effort: 6,
       vision:
-        "Estimates that are fast, consistent, and priced from the same parts and labor data every time.",
+        "Two clicks get an estimate 90% of the way, and everything downstream (orders, labels, kits) falls out of it.",
       mission:
-        "Rebuild estimating around a shared parts library and standard labor units, with templates for common system packages and margin checks before anything goes out. Feeds from [[the Topo Design Model]] once it lands.",
+        "Standard packages in Apex (tour-grade, distributed, visionary) grouped by room, with areas captured at estimate time. Speaker cabling option sets for fast quotes, TV accessories that add themselves, and contracts and change orders handled in Apex instead of PandaDoc.",
       objectives: [
-        { text: "Parts library cleaned and priced", done: true },
-        { text: "Standard labor units per device", done: true },
-        { text: "System package templates", done: true },
-        { text: "Margin guardrails and approval step", done: false },
-        { text: "Estimate-to-actual feedback loop", done: false }
+        { text: "Move contracts and change orders from PandaDoc into Apex", done: true, owner: "Tyson" },
+        { text: "Editable Area column in estimates, auto-filled from system name", done: true, owner: "Tyson" },
+        { text: "Black Ops template: lighting (about half done)", done: false, owner: "Cameron" },
+        { text: "Black Ops template: distributed", done: false, owner: "Cameron" },
+        { text: "Review ~12 pricing and efficiency items", done: false, owner: "Cameron & Tyson" },
+        { text: "Speaker cabling option sets (SC32/SoCo to KCON, NL8 to NL4) with cost comparison", done: false, owner: "Team" },
+        { text: "Auto-add TV accessories when a TV is added", done: false, owner: "Cameron" },
+        { text: "SA review: reviewed by default, explicit “wait” for exceptions", done: false, owner: "Tyson" }
       ],
       outcomes: [
-        { label: "Estimate turnaround", unit: "days", baseline: 7, current: 3, target: 2, better: "down" },
-        { label: "Estimated vs actual labor", unit: "% var", baseline: 22, current: 12, target: 8, better: "down" },
-        { label: "Win rate", unit: "%", baseline: 28, current: 33, target: 38, better: "up" }
+        { label: "Contract paperwork", value: "Off PandaDoc", detail: "Contracts and change orders fully in Apex; proposals stay in PandaDoc for now.", state: "met" },
+        { label: "Black Ops template", value: "~50%", detail: "Lighting halfway, distributed still to go. Wrap targeted this week.", state: "on" },
+        { label: "Estimating speed", value: "2 clicks → 90%", detail: "Room packages make a multi-room estimate mostly automatic.", state: "pending" }
       ],
       phases: [
-        { name: "Recon", start: "2026-04-01", end: "2026-04-30" },
-        { name: "Build", start: "2026-05-01", end: "2026-09-30" },
-        { name: "Rollout", start: "2026-10-01", end: "2026-12-31" }
+        { name: "V2 template", start: "2026-08-04", end: "2026-09-30" },
+        { name: "Automation", start: "2026-10-01", end: "2026-11-30" },
+        { name: "Rollout", start: "2026-12-01", end: "2026-12-31" }
       ],
       risks: [
-        { text: "Vendor price changes outpacing library updates", sev: "high" },
-        { text: "Labor units not matching real field times", sev: "med" }
+        { text: "SE details lost in free-text notes instead of structured fields", sev: "med" },
+        { text: "Breakout choices change amplifier channel use and layouts", sev: "med" },
+        { text: "Go-to 15\" box has no splay option in its tour version", sev: "low" }
       ],
       intel: [
-        { date: "2026-09-24", text: "Package templates used on 9 bids this month. Median turnaround 3 days." },
-        { date: "2026-09-02", text: "Labor units calibrated against last year's job actuals." }
+        { date: "2026-09-22", text: "Area vs. location model confirmed. SEs can override area in a hidden estimate column.", src: "0922" },
+        { date: "2026-09-08", text: "Speaker cabling standardization prioritized; NL4 jumpers to be stocked at a standard length.", src: "0908" },
+        { date: "2026-08-11", text: "Contracts and change orders moved from PandaDoc into Apex. V2 pricing template started.", src: "0811" }
       ]
     },
     {
       id: "BO-006",
       codename: "SIGNAL FLARE",
       title: "Apex Marketing",
-      pillar: "Revenue",
-      status: "hold",
+      pillar: "Sales",
+      status: "extraction",
       clearance: "CONFIDENTIAL",
-      lead: "Marketing",
-      team: ["Marketing", "Sales"],
-      start: "2026-10-15",
-      end: "2027-04-30",
+      lead: "Tyson Wiens",
+      team: ["Tyson Wiens", "Jacob Cody"],
+      start: "2026-08-04",
+      end: "2026-10-31",
+      estimatedEnd: true,
       impact: 6,
-      effort: 4,
+      effort: 3,
       vision:
-        "The market sees the quality of our work before we ever walk in the door.",
+        "Leads, email marketing and client history live in Apex, and Nutshell goes away for good.",
       mission:
-        "Turn finished projects into case studies, photos and proof points, and run targeted campaigns to the verticals we win most. Waiting on [[Apex Estimating rollout]] so leads can be quoted fast.",
+        "Finish the move off Nutshell: lead management in Apex (done), email marketing rebuilt in Apex with Rachel, and AI meeting summaries landing as concise, consistent CRM notes. Proposals get a visual refresh built on the sales bible and StoryBrand.",
       objectives: [
-        { text: "Pick target verticals from win data", done: false },
-        { text: "Five case studies from recent jobs", done: false },
-        { text: "Campaign calendar and lead tracking", done: false }
+        { text: "Custom Apex CRM that mirrors Nutshell", done: true, owner: "Tyson" },
+        { text: "Lead management moved into Apex", done: true, owner: "Tyson" },
+        { text: "Email marketing build with Rachel", done: false, owner: "Tyson", due: "2026-09-24" },
+        { text: "Retire Nutshell", done: false, owner: "Tyson" },
+        { text: "Standard AI discovery and programming summaries in CRM notes", done: false, owner: "Jacob" },
+        { text: "Capture room and area names in programming-meeting prompts", done: false, owner: "Jacob" }
       ],
       outcomes: [
-        { label: "Qualified leads per month", unit: "", baseline: 8, current: 8, target: 20, better: "up" },
-        { label: "Published case studies", unit: "", baseline: 0, current: 0, target: 5, better: "up" }
+        { label: "Tool savings", value: "$15K / yr", detail: "From deleting Nutshell and simplifying the tool set.", state: "on" },
+        { label: "Lead management", value: "In Apex", detail: "Nutshell no longer needed for CRM.", state: "met" },
+        { label: "Email marketing", value: "In build", detail: "Base platform built in Apex; working session with Rachel on 09/24.", state: "on" }
       ],
       phases: [
-        { name: "Recon", start: "2026-10-15", end: "2026-11-30" },
-        { name: "Content", start: "2026-12-01", end: "2027-02-28" },
-        { name: "Campaigns", start: "2027-03-01", end: "2027-04-30" }
+        { name: "CRM build", start: "2026-08-04", end: "2026-08-31" },
+        { name: "Lead cutover", start: "2026-09-01", end: "2026-09-21" },
+        { name: "Email & retire", start: "2026-09-22", end: "2026-10-31" }
       ],
       risks: [
-        { text: "Getting client sign-off to publish project photos", sev: "med" }
+        { text: "Nutshell can't be retired until email marketing is fully rebuilt", sev: "med" },
+        { text: "Cutover date has slipped once", sev: "low" }
       ],
       intel: [
-        { date: "2026-09-10", text: "Held until Apex Estimating finishes rollout." }
+        { date: "2026-09-22", text: "Lead management moved into Apex. Email marketing build continues with Rachel; ~$15K/yr savings expected.", src: "0922" },
+        { date: "2026-08-11", text: "Apex CRM fully mirrors Nutshell; cutover planned with Nathan and Jake.", src: "0811" }
+      ]
+    },
+    {
+      id: "BO-007",
+      codename: "GHOST WRITER",
+      title: "AI & Admin Automation",
+      pillar: "Operations",
+      status: "active",
+      clearance: "TOP SECRET",
+      lead: "Tyson Wiens",
+      team: ["Tyson Wiens", "Jacob Cody", "Adam Hoekstra"],
+      start: "2026-08-04",
+      end: "2026-12-31",
+      estimatedEnd: true,
+      impact: 8,
+      effort: 4,
+      vision:
+        "Machines do the checking, drafting and chasing, and people only review what's actually unusual.",
+      mission:
+        "AI agents and automations across finance, admin and sales: nightly bill verification, AI-drafted first overdue-invoice emails from Sage, Ramp auto-approval for clean expenses, and assistants that book travel, schedule meetings, prep briefs and track commitments.",
+      objectives: [
+        { text: "Nightly bill verification on amount and date", done: true, owner: "Tyson" },
+        { text: "AI drafts first overdue-invoice email from Sage, human sends", done: true, owner: "Tyson" },
+        { text: "Ramp auto-approves compliant expenses under $150", done: true, owner: "Tyson" },
+        { text: "Ramp down to memo and project as the only user inputs", done: false, owner: "Tyson" },
+        { text: "Roll out AI assistants to AM / PM / SE roles", done: false, owner: "Jacob" },
+        { text: "Enterprise Claude access for Adam", done: false, owner: "Tyson" }
+      ],
+      outcomes: [
+        { label: "AR outreach time", value: "−4 h / wk", detail: "First overdue-invoice drafts built automatically; replaces Carrie's manual work.", state: "met" },
+        { label: "Bills verified nightly", value: "500–600 / mo", detail: "Every bill entry checked on amount and date.", state: "met" },
+        { label: "Account manager workload", value: "~85% automated", detail: "Jacob's proof of concept: travel, expenses, scheduling, briefs, digests.", state: "on" }
+      ],
+      phases: [
+        { name: "Finance bots", start: "2026-08-04", end: "2026-09-21" },
+        { name: "Expense rules", start: "2026-09-22", end: "2026-10-31" },
+        { name: "Team rollout", start: "2026-11-01", end: "2026-12-31" }
+      ],
+      risks: [
+        { text: "Per-seat AI cost at scale; rolling out in phases", sev: "med" },
+        { text: "Ongoing AR threads still need a person", sev: "low" }
+      ],
+      intel: [
+        { date: "2026-09-22", text: "AI AR emails and nightly bill checks live. Ramp auto-approves clean expenses under $150.", src: "0922" },
+        { date: "2026-09-08", text: "Nightly bill review tool built for 500–600 bills a month. Jacob reports ~85% of his work automated.", src: "0908" }
       ]
     }
   ]
