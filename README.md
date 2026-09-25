@@ -14,8 +14,9 @@ on each objective.
 
 ## Views
 
-- **Hero**: the summit, a faceted peak with contour lines traced on it, lit by one spotlight
-  (Three.js). Drag to turn it; the light follows the pointer.
+- **Hero**: the summit, an alpine massif drawn like an ink study: black rock, pale light only
+  along the crests, and one light glowing behind the peak (Three.js). Drag to turn it; the
+  light follows the pointer.
 - **The Ascent**: every operation planted as a flag on one ridge, from Base Camp through
   Camps I–III to the Summit, by share of objectives cleared. Live and complete operations stand on the summit.
 - **The Files**: horizontal reel of every operation. Filter by status, scroll sideways with the wheel or arrows.

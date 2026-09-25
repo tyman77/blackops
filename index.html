@@ -405,7 +405,9 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
   .nav { background: var(--black); border-bottom: 1px solid var(--line); }
   .sec { scroll-margin-top: 90px; }
   .search .lbl { display: none; }
-  .hero { height: auto; min-height: 640px; }
+  .hero { height: auto; min-height: 0; margin-top: 0; }
+  .hero canvas, .hero .fallback { height: 380px; bottom: auto; }
+  .hero-copy { position: relative; inset: auto; margin-top: 300px; padding-top: 24px; background: linear-gradient(rgba(0,0,0,0), var(--black) 60px); }
   .op { min-height: 500px; padding: 20px; }
   .quads { grid-template-columns: minmax(0, 1fr); }
   .algo { grid-template-columns: minmax(0, 1fr); }

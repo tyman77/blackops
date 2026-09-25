@@ -113,128 +113,116 @@
 
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 1);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x000000, 12, 28);
-    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
 
-    // the summit: one faceted peak, contour lines traced on it like a topo model
-    const N = 170, SPAN = 10, R = 4.3;
-    const height = (x, z) => {
-      const r = Math.hypot(x, z);
-      if (r >= R) return 0;
-      const k = 1 - r / R;
-      const ridge = 1 - Math.abs(fbm(x * 0.55 + 3.1, z * 0.55 + 7.3) * 2 - 1);
-      const sub = fbm(x * 0.9 - 4.2, z * 0.9 + 1.7);
-      const h = 2.9 * Math.pow(k, 1.25) * (0.3 + 0.7 * ridge) * (0.75 + 0.5 * sub) + 0.9 * Math.exp(-(x * x + z * z) / 1.3) * k;
-      return h * (1 - Math.pow(r / R, 10));
-    };
-    const terrainGeo = new THREE.PlaneGeometry(SPAN, SPAN, N, N);
-    terrainGeo.rotateX(-Math.PI / 2);
-    const pos = terrainGeo.attributes.position;
-    let peak = { x: 0, y: 0, z: 0 };
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i), z = pos.getZ(i), y = height(x, z);
-      pos.setY(i, y);
-      if (y > peak.y) peak = { x, y, z };
-    }
-    terrainGeo.computeVertexNormals();
-    const terrain = new THREE.Mesh(terrainGeo, new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.3, roughness: 0.7, flatShading: true }));
-    terrain.castShadow = true;
-    terrain.receiveShadow = true;
-
-    // marching squares over the same height field, one ring per elevation band
-    const grid = [];
-    for (let i = 0; i <= N; i++) {
-      grid.push([]);
-      for (let j = 0; j <= N; j++) grid[i].push(height(-SPAN / 2 + (SPAN * j) / N, -SPAN / 2 + (SPAN * i) / N));
-    }
-    const seg = [];
-    const cx = (j) => -SPAN / 2 + (SPAN * j) / N;
-    for (let L = 0.22; L < peak.y; L += 0.22) {
-      for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
-        const c = [[i, j], [i, j + 1], [i + 1, j + 1], [i + 1, j]];
-        const v = c.map(([a, b]) => grid[a][b]);
-        if (Math.max(...v) < L || Math.min(...v) > L) continue;
-        const hits = [];
-        for (let e = 0; e < 4; e++) {
-          const a = v[e], b = v[(e + 1) % 4];
-          if ((a < L) === (b < L)) continue;
-          const t = (L - a) / (b - a);
-          const [ia, ja] = c[e], [ib, jb] = c[(e + 1) % 4];
-          hits.push([cx(ja + (jb - ja) * t), L + 0.015, cx(ia + (ib - ia) * t)]);
-        }
-        if (hits.length >= 2) seg.push(...hits[0], ...hits[1]);
-        if (hits.length === 4) seg.push(...hits[2], ...hits[3]);
+    // the summit, drawn like the reference: black rock, pale ink only along the crests,
+    // main peak left of centre with shoulders both sides, and one light glowing behind it
+    const NX = 380, NZ = 150, SX = 18, SZ = 6;
+    const ridged = (x, z) => {
+      let t = 0, amp = 0.5, f = 1, w = 1;
+      for (let o = 0; o < 6; o++) {
+        let n = 1 - Math.abs(vnoise(x * f, z * f) * 2 - 1);
+        n = n * n * w;
+        w = Math.min(1, n * 2);
+        t += n * amp; f *= 2.05; amp *= 0.5;
       }
+      return t;
+    };
+    // round and diamond distance blended, so each peak has pyramid faces and sharp aretes
+    const cone = (x, z, cx, cz, r, hgt) => {
+      const dx = (x - cx) / r, dz = (z - cz) / (r * 0.7);
+      const d = 0.4 * Math.hypot(dx, dz) + 0.6 * (Math.abs(dx) + Math.abs(dz)) * 0.78;
+      return d >= 1 ? 0 : hgt * (1 - d);
+    };
+    const height = (x, z) => {
+      const e = 1 - Math.hypot(x / 8.6, z / 2.8);
+      if (e <= 0) return 0;
+      const env = Math.pow(e, 1.2);
+      const fade = Math.min(1, e / 0.35);
+      const soft = fade * fade * (3 - 2 * fade);
+      const peaks = Math.max(
+        cone(x, z, -1.3, 0, 3.6, 5.2),
+        cone(x, z, 2.3, 0.2, 2.9, 2.9),
+        cone(x, z, -4.4, 0, 2.6, 2.0),
+        cone(x, z, 5.0, -0.1, 2.6, 1.7)
+      );
+      const rock = ridged(x * 0.55 + 5.3, z * 0.55 + 2.1);
+      return (0.9 * env + peaks * soft) * (0.86 + 0.24 * rock) + 0.28 * env * rock;
+    };
+    const geo = new THREE.PlaneGeometry(SX, SZ, NX, NZ);
+    geo.rotateX(-Math.PI / 2);
+    const pos = geo.attributes.position;
+    const H = new Float32Array(pos.count);
+    for (let i = 0; i < pos.count; i++) { H[i] = height(pos.getX(i), pos.getZ(i)); pos.setY(i, H[i]); }
+    geo.computeVertexNormals();
+    const nrm = geo.attributes.normal;
+    const W1 = NX + 1;
+    const at = (r, c) => H[Math.min(NZ, Math.max(0, r)) * W1 + Math.min(NX, Math.max(0, c))];
+    // convexity at two scales finds crests and couloir edges once; the light direction is applied per frame
+    const crest = new Float32Array(pos.count);
+    for (let r = 0; r <= NZ; r++) for (let c = 0; c <= NX; c++) {
+      const i = r * W1 + c;
+      const l1 = H[i] - (at(r - 1, c) + at(r + 1, c) + at(r, c - 1) + at(r, c + 1)) / 4;
+      const l3 = H[i] - (at(r - 3, c) + at(r + 3, c) + at(r, c - 3) + at(r, c + 3)) / 4;
+      crest[i] = H[i] < 0.08 ? 0 : Math.min(1, Math.max(0, l1 * 40 + l3 * 10 - 0.05));
     }
-    const lineGeo = new THREE.BufferGeometry();
-    lineGeo.setAttribute("position", new THREE.Float32BufferAttribute(seg, 3));
-    const contours = new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 }));
-
-    // a flag on the summit
-    const white = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.8, 6), white);
-    pole.position.set(peak.x, peak.y + 0.4, peak.z);
-    const flagShape = new THREE.Shape();
-    flagShape.moveTo(0, 0); flagShape.lineTo(0.42, -0.12); flagShape.lineTo(0, -0.24); flagShape.lineTo(0, 0);
-    const flag = new THREE.Mesh(new THREE.ShapeGeometry(flagShape), white);
-    flag.position.set(peak.x, peak.y + 0.8, peak.z);
-
-    const mountain = new THREE.Group();
-    mountain.add(terrain, contours, pole, flag);
+    const cols = new Float32Array(pos.count * 3);
+    geo.setAttribute("color", new THREE.BufferAttribute(cols, 3));
+    const L = new THREE.Vector3();
+    const shade = (lxDir) => {
+      L.set(lxDir, 0.75, 0.55).normalize();
+      for (let i = 0; i < pos.count; i++) {
+        const f = Math.max(0, nrm.getX(i) * L.x + nrm.getY(i) * L.y + nrm.getZ(i) * L.z);
+        const v = Math.min(1, Math.pow(crest[i], 1.25) * (0.08 + 1.1 * f) + 0.05 * Math.pow(f, 10));
+        cols[i * 3] = cols[i * 3 + 1] = cols[i * 3 + 2] = v;
+      }
+      geo.attributes.color.needsUpdate = true;
+    };
+    const mountain = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true }));
     scene.add(mountain);
 
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(80, 80),
-      new THREE.MeshStandardMaterial({ color: 0x070707, roughness: 1, metalness: 0 })
+    // the light: a soft glow behind the summit so the black silhouette reads against the page
+    const glowCanvas = document.createElement("canvas");
+    glowCanvas.width = glowCanvas.height = 256;
+    const gx = glowCanvas.getContext("2d");
+    const grad = gx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grad.addColorStop(0, "rgba(255,255,255,0.22)");
+    grad.addColorStop(0.4, "rgba(255,255,255,0.06)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    gx.fillStyle = grad;
+    gx.fillRect(0, 0, 256, 256);
+    const glow = new THREE.Mesh(
+      new THREE.PlaneGeometry(18, 12),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(glowCanvas), transparent: true, depthWrite: false })
     );
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -0.01;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    const aim = new THREE.Object3D();
-    aim.position.set(0, 1.2, 0);
-    scene.add(aim);
-    const light = new THREE.SpotLight(0xffffff, 2.4, 40, 0.42, 0.8, 1.3);
-    light.position.set(3.5, 10, 2.5);
-    light.target = aim;
-    light.castShadow = true;
-    light.shadow.mapSize.set(2048, 2048);
-    light.shadow.bias = -0.0006;
-    light.shadow.normalBias = 0.03;
-    light.shadow.radius = 5;
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.04));
+    glow.position.set(-1.3, 6.2, -7);
+    scene.add(glow);
 
     const size = () => {
       const w = canvas.clientWidth, h = canvas.clientHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       const narrow = w < 700;
-      camera.position.set(0, narrow ? 7 : 5.2, narrow ? 19 : 13.5);
-      camera.lookAt(0, narrow ? 3.2 : 2.1, 0);
+      camera.position.set(0, narrow ? 1.6 : 1.4, narrow ? 30 : 21);
+      camera.lookAt(0, narrow ? 2.4 : 2.9, 0);
       camera.updateProjectionMatrix();
     };
     size();
     addEventListener("resize", size);
     if (window.ResizeObserver) new ResizeObserver(() => { size(); if (typeof frame === "function") frame(); }).observe(canvas);
 
-    // drag to turn the mountain, with inertia; the light drifts toward the pointer
-    const idle = reduced ? 0 : 0.0016;
-    let vx = idle, drag = null, px = 0.5, lx = 2.5;
+    // drag to turn the massif; it settles back to a slow sway. The light follows the pointer.
+    let angle = 0, target = 0, drag = null, px = 0.3, lx = -0.8, lastLx = 99, t = 0;
     canvas.style.touchAction = "pan-y";
-    canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX }; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, a: target }; canvas.setPointerCapture(e.pointerId); });
     canvas.addEventListener("pointermove", (e) => {
       const r = canvas.getBoundingClientRect();
       px = (e.clientX - r.left) / r.width;
       if (!drag) return;
-      vx = (e.clientX - drag.x) * 0.0022;
-      drag = { x: e.clientX };
+      target = Math.max(-0.9, Math.min(0.9, drag.a + (e.clientX - drag.x) * 0.004));
       if (reduced) frame();
     });
     const end = () => { drag = null; };
@@ -245,17 +233,19 @@
     new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe(canvas);
 
     function frame() {
-      mountain.rotation.y += vx;
-      if (!drag) vx += (idle - vx) * 0.03;
-      lx += ((px - 0.5) * 8 + 1 - lx) * 0.04;
-      light.position.x = lx;
+      if (!reduced) t += 0.004;
+      if (!drag) target += ((reduced ? 0 : Math.sin(t) * 0.1) - target) * 0.02;
+      angle += (target - angle) * (reduced ? 1 : 0.08);
+      mountain.rotation.y = angle;
+      lx += ((px - 0.5) * 2.4 - 0.5 - lx) * 0.05;
+      if (Math.abs(lx - lastLx) > 0.01) { shade(lx); lastLx = lx; }
+      glow.position.x = -1.3 + lx * 1.4;
       renderer.render(scene, camera);
     }
     function loop() {
       if (visible && !document.hidden) frame();
       requestAnimationFrame(loop);
     }
-    mountain.rotation.y = 0.6;
     frame();
     fallback.hidden = true;
     if (!reduced) requestAnimationFrame(loop);
