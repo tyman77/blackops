@@ -10,7 +10,8 @@
  * Text tip: wrap words in [[double brackets]] to show them as a redaction bar
  * that reveals on hover / tap. Used here for client project names.
  *
- * status:     "recon" | "active" | "extraction" | "complete" | "hold"
+ * status:     "recon" | "active" | "extraction" | "live" | "complete" | "hold"
+ *             live = rolled out and in use, still being refined (set ongoing: true)
  * impact / effort: 1–10 (drives the Radar view)
  * objectives: { text, done, owner?, due? }
  * outcomes:   { label, value, detail, state: "met" | "on" | "pending" | "behind" }
@@ -307,23 +308,24 @@ window.BLACKOPS = {
     },
     {
       id: "BO-005",
-      codename: "PRICE POINT",
+      codename: "APEX",
       title: "Apex Estimating",
       pillar: "Sales",
-      status: "active",
+      status: "live",
+      ongoing: true,
       clearance: "SECRET",
       lead: "Cameron Fries",
       team: ["Cameron Fries", "Tyson Wiens", "Jacob Cody"],
       start: "2026-08-04",
-      end: "2026-12-31",
-      estimatedEnd: true,
+      end: "2027-02-26",
       impact: 9,
       effort: 6,
       vision:
         "Two clicks get an estimate 90% of the way, and everything downstream (orders, labels, kits) falls out of it.",
       mission:
-        "Standard packages in Apex (tour-grade, distributed, visionary) grouped by room, with areas captured at estimate time. Speaker cabling option sets for fast quotes, TV accessories that add themselves, and contracts and change orders handled in Apex instead of PandaDoc.",
+        "Apex is live and is how we estimate today. The work now is continuous refinement: standard packages (tour-grade, distributed, visionary) grouped by room, areas captured at estimate time, speaker cabling option sets for fast quotes, TV accessories that add themselves, and more of the paperwork moved out of PandaDoc.",
       objectives: [
+        { text: "Apex rolled out as the estimating platform", done: true, owner: "Tyson" },
         { text: "Move contracts and change orders from PandaDoc into Apex", done: true, owner: "Tyson" },
         { text: "Editable Area column in estimates, auto-filled from system name", done: true, owner: "Tyson" },
         { text: "Black Ops template: lighting (about half done)", done: false, owner: "Cameron" },
@@ -334,14 +336,13 @@ window.BLACKOPS = {
         { text: "SA review: reviewed by default, explicit “wait” for exceptions", done: false, owner: "Tyson" }
       ],
       outcomes: [
+        { label: "Estimating platform", value: "Live", detail: "Apex is rolled out and in daily use; refinements ship continuously.", state: "met" },
         { label: "Contract paperwork", value: "Off PandaDoc", detail: "Contracts and change orders fully in Apex; proposals stay in PandaDoc for now.", state: "met" },
         { label: "Black Ops template", value: "~50%", detail: "Lighting halfway, distributed still to go. Wrap targeted this week.", state: "on" },
         { label: "Estimating speed", value: "2 clicks → 90%", detail: "Room packages make a multi-room estimate mostly automatic.", state: "pending" }
       ],
       phases: [
-        { name: "V2 template", start: "2026-08-04", end: "2026-09-30" },
-        { name: "Automation", start: "2026-10-01", end: "2026-11-30" },
-        { name: "Rollout", start: "2026-12-01", end: "2026-12-31" }
+        { name: "Live · continuous refinement", start: "2026-08-04", end: "2027-02-26", ongoing: true }
       ],
       risks: [
         { text: "SE details lost in free-text notes instead of structured fields", sev: "med" },

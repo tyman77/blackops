@@ -9,6 +9,7 @@
     recon: "Recon",
     active: "Active",
     extraction: "Extraction",
+    live: "Live",
     complete: "Complete",
     hold: "On hold"
   };
@@ -40,6 +41,9 @@
     const o = op.objectives || [];
     return o.length ? o.filter((x) => x.done).length / o.length : 0;
   };
+  const windowText = (op) => op.ongoing
+    ? `Live · since ${fmt(op.start)}`
+    : `${fmt(op.start)} – ${op.estimatedEnd ? fmtMonth(op.end) : fmt(op.end)}`;
   const elapsed = (op) => clamp((AS_OF - date(op.start)) / (date(op.end) - date(op.start)));
   const outcomePct = (o) => (o.target === o.baseline ? 1 : clamp((o.current - o.baseline) / (o.target - o.baseline)));
   const STATE_LBL = { met: "Delivered", on: "On track", pending: "Pending", behind: "Behind" };
@@ -336,6 +340,7 @@
       const dash = op.status === "hold" ? ' stroke-dasharray="2 2"' : "";
       out += `<g class="blip" tabindex="0" role="button" data-op="${op.id}" data-cursor="Open file" aria-label="${esc(op.codename)}: impact ${op.impact}, effort ${op.effort}">
         ${op.status === "active" ? `<circle class="ring" cx="${cx}" cy="${cy}" r="7" fill="none" stroke="#FFFFFF"/>` : ""}
+        ${op.status === "live" ? `<circle cx="${cx}" cy="${cy}" r="11" fill="none" stroke="#FFFFFF" stroke-width="1"/>` : ""}
         <circle class="dot" cx="${cx}" cy="${cy}" r="7" fill="${fill}" stroke="#FFFFFF" stroke-width="1.5"${dash}/>
         <text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="12" letter-spacing="1.5" fill="#FFFFFF">${esc(op.codename)}</text>
       </g>`;
@@ -376,9 +381,10 @@
         const s = date(p.start), e = date(p.end);
         const l = pos(s), w = Math.max(pos(e) - l, 0.6);
         let cls = "", style = `left:${l}%;width:calc(${w}% - 2px)`;
-        if (e < AS_OF || op.status === "complete") cls = "done";
+        if (p.ongoing) { cls = "ongoing"; style = `left:${l}%;right:0`; }
+        else if (e < AS_OF || op.status === "complete") cls = "done";
         else if (s <= AS_OF) { cls = "now"; style += `;--p:${Math.round(clamp((AS_OF - s) / (e - s)) * 100)}%`; }
-        return `<div class="seg ${cls}" style="${style}" title="${esc(p.name)}: ${fmt(p.start)} to ${fmt(p.end)}">${esc(p.name)}</div>`;
+        return `<div class="seg ${cls}" style="${style}" title="${esc(p.name)}: ${p.ongoing ? `since ${fmt(p.start)}, no end date` : `${fmt(p.start)} to ${fmt(p.end)}`}"><span class="seg-t">${esc(p.name)}${p.ongoing ? " →" : ""}</span></div>`;
       }).join("");
       html += `<button class="tl-row" type="button" data-op="${op.id}" data-cursor="Open file">
         <span class="tl-label"><span class="c">${esc(op.codename)}</span><span class="t">${esc(op.title)}</span></span>
@@ -467,6 +473,7 @@
       const s = date(ph.start), e = date(ph.end);
       const past = e < AS_OF || op.status === "complete";
       const now = !past && s <= AS_OF;
+      if (ph.ongoing) return `<div class="ph ongoing"><i></i><b>${esc(ph.name)}</b><span>Since ${fmt(ph.start)} · no end date</span></div>`;
       return `<div class="ph ${past ? "past" : now ? "now" : ""}" style="--p:${Math.round(clamp((AS_OF - s) / (e - s)) * 100)}%">
         <i></i><b>${esc(ph.name)}</b><span>${fmt(ph.start)} – ${fmt(ph.end)}</span></div>`;
     }).join("");
@@ -497,7 +504,7 @@
         <div class="facts">
           <div class="fact"><span class="label">Lead</span><b>${esc(op.lead)}</b></div>
           <div class="fact"><span class="label">Pillar</span><b>${esc(op.pillar)}</b></div>
-          <div class="fact"><span class="label">Window${op.estimatedEnd ? " · end est." : ""}</span><b class="num">${fmt(op.start)} – ${op.estimatedEnd ? fmtMonth(op.end) : fmt(op.end)}</b></div>
+          <div class="fact"><span class="label">${op.ongoing ? "Status" : `Window${op.estimatedEnd ? " · end est." : ""}`}</span><b class="num">${windowText(op)}</b></div>
           <div class="fact"><span class="label">Objectives</span><b class="num">${Math.round(p * 100)}% cleared</b></div>
         </div>
       </div>

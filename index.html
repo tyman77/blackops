@@ -91,6 +91,10 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 .st-extraction::before { background: linear-gradient(90deg, var(--white) 50%, transparent 50%); }
 .st-complete::before { background: var(--gray); border-color: var(--gray); }
 .st-hold::before { border: 1px dashed var(--gray); }
+.st-live { color: var(--white); }
+.st-live::before { background: var(--white); box-shadow: 0 0 0 2px var(--black), 0 0 0 3px var(--white); }
+.seg.ongoing { color: var(--black); border-color: var(--white); background: repeating-linear-gradient(135deg, #e6e6e6 0 6px, #bdbdbd 6px 12px); border-right: 0; border-radius: 3px 0 0 3px; }
+.ph.ongoing i { background: repeating-linear-gradient(90deg, var(--white) 0 8px, transparent 8px 12px); }
 @keyframes pulse { 50% { box-shadow: 0 0 0 5px rgba(255,255,255,.12); } }
 
 /* filters */
@@ -188,6 +192,7 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
   font: 500 9px/22px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--gray);
   padding: 0 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transition: border-color .2s; }
 .seg.done { background: var(--white); color: var(--black); border-color: var(--white); }
+.seg.now .seg-t { color: #fff; mix-blend-mode: difference; }
 .seg.now { background: linear-gradient(90deg, #d9d9d9 var(--p), var(--panel) var(--p)); color: var(--black); border-color: var(--white); }
 .today { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--alert); z-index: 3; pointer-events: none; }
 .today span { position: absolute; bottom: 5px; left: 5px; font: 500 9px/1 var(--mono); color: var(--alert); letter-spacing: .14em; white-space: nowrap; background: var(--black); padding: 2px 3px; }
@@ -429,7 +434,7 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 <section class="sec gutter" id="timeline" aria-label="Campaign timeline">
   <div class="sec-head">
     <div><div class="label">Campaign timeline</div><h2>Phases in motion</h2></div>
-    <div class="label">Filled = complete · Split = in progress</div>
+    <div class="label">Filled = complete · Split = in progress · Striped = live, ongoing</div>
   </div>
   <div class="tl-scroll"><div class="tl" id="tl"></div></div>
 </section>
