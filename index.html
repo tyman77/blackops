@@ -68,7 +68,7 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 }
 .hero h1 b { font-weight: 400; font-style: italic; color: var(--gray); }
 .hero-side { display: grid; gap: 22px; pointer-events: auto; }
-.hero-side p { margin: 0; color: var(--gray); font-size: 16px; max-width: 42ch; }
+.hero-side p { margin: 0; color: #b4b4b4; font-size: 16px; max-width: 42ch; text-shadow: 0 0 6px #000, 0 0 14px #000, 0 0 24px #000; }
 .kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line-2); }
 .kpi { padding: 14px 0 0; display: grid; gap: 4px; }
 .kpi:nth-child(n+3) { padding-top: 16px; }
@@ -443,7 +443,7 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
 <section class="hero" aria-label="Command briefing">
   <div class="fallback" id="fallback"></div>
   <canvas id="stage" aria-hidden="true"></canvas>
-  <div class="coord l">OBJ-00 / THE SUMMIT<br>LIGHT SOURCE: 1<br>DRAG TO TURN</div>
+  <div class="coord l">OBJ-00 / THE SUMMIT<br>LIGHT SOURCE: 1<br>MOVE TO SHIFT THE LIGHT</div>
   <div class="coord r" id="asof"></div>
   <div class="hero-copy gutter">
     <h1>Black<br><b>Ops</b></h1>
@@ -547,7 +547,6 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>
