@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Black Ops · Signing in</title>
+<style>
+html, body { margin: 0; height: 100%; background: #000; color: #9C9C9C; }
+body { display: grid; place-items: center; font: 500 11px/1.4 "IBM Plex Mono", ui-monospace, Menlo, monospace; letter-spacing: .16em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<p id="msg">Checking clearance…</p>
+<script>
+// Supabase sends the user back here with a token in the URL fragment (Google or magic link).
+// Hand it to the server, which verifies it and sets the Black Ops session cookie.
+(async () => {
+  const back = (error) => location.replace("/login?error=" + encodeURIComponent(error));
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const query = new URLSearchParams(location.search);
+  const failed = hash.get("error_description") || query.get("error_description");
+  if (failed) return back(failed.replace(/\+/g, " "));
+  const token = hash.get("access_token");
+  history.replaceState(null, "", location.pathname); // keep the token out of history
+  if (!token) return back("That sign-in link didn't work. Request a new one.");
+  try {
+    const res = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ access_token: token }) });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return back(body.error || "Sign-in failed.");
+    let next = "/";
+    try { next = sessionStorage.getItem("bo_next") || "/"; sessionStorage.removeItem("bo_next"); } catch (e) {}
+    location.replace(next.startsWith("/") && !next.startsWith("//") ? next : "/");
+  } catch (e) {
+    back("Couldn't finish signing in. Try again.");
+  }
+})();
+</script>
+</body>
+</html>

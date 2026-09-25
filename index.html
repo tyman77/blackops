@@ -392,6 +392,8 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
 
 /* ---------- easter eggs ---------- */
 .big-foot { position: relative; cursor: default; }
+.signout { color: var(--gray); margin-left: 18px; text-decoration: none; border-bottom: 1px solid var(--line-2); }
+.signout:hover { color: var(--white); border-color: var(--white); }
 .big-foot .bf-b { position: absolute; left: 0; top: 40px; opacity: 0; -webkit-text-stroke: 1px var(--white); transition: opacity .8s var(--ease); }
 .big-foot .bf-a { transition: opacity .8s var(--ease); }
 .big-foot:hover .bf-a { opacity: 0; }
@@ -565,7 +567,7 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
   <div class="big-foot" aria-hidden="true"><span class="bf-a">Black Ops</span><span class="bf-b">Summit</span></div>
   <div class="foot" style="padding-top:0">
     <span class="label">Framework: The Algorithm (Jon McNeill) · sourced from Black Ops syncs and #project_black_ops · end dates are estimates</span>
-    <span class="label">Press ⌘K or / to search</span>
+    <span class="label">Press ⌘K or / to search<a class="signout" id="signout" href="/api/auth/logout" hidden>Sign out</a></span>
   </div>
 </footer>
 <div class="classline"><i></i>INTERNAL USE ONLY // BLACK OPS // NEED-TO-KNOW</div>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Black Ops · Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Bodoni+Moda:opsz,wght@6..96,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root { --black: #000; --gray: #9C9C9C; --line: #1F1F1F; --line-2: #2E2E2E; --white: #fff; --alert: #E5484D;
+  --serif: "Bodoni Moda", Didot, Georgia, serif; --sans: "Archivo", "Helvetica Neue", Arial, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--black); color: var(--white); font: 400 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+body { display: grid; grid-template-rows: auto 1fr auto; min-height: 100vh; min-height: 100dvh;
+  background: linear-gradient(rgba(0,0,0,0) 30%, #000 62%), url("/assets/summit.jpg") center -8vh / auto 88vh no-repeat, #000; }
+.classline { display: flex; justify-content: center; align-items: center; gap: 10px; padding: 7px 16px; border-bottom: 1px solid var(--line); font: 500 10px/1.4 var(--mono); letter-spacing: .28em; color: var(--gray); text-align: center; }
+.classline i { width: 6px; height: 6px; border-radius: 50%; background: var(--alert); flex: none; }
+main { display: grid; place-items: end center; padding: 24px 16px 48px; }
+.card { width: min(420px, 100%); display: grid; gap: 22px; text-align: center; }
+h1 { margin: 0; font: 400 clamp(56px, 14vw, 96px)/.82 var(--serif); text-transform: uppercase; }
+h1 em { color: var(--gray); }
+.label { font: 500 11px/1.4 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--gray); }
+button, input { font: inherit; }
+.btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px 18px; border: 1px solid var(--white); background: var(--white); color: var(--black); cursor: pointer; font: 500 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.btn:hover { background: #d9d9d9; }
+.btn.ghost { background: transparent; color: var(--white); border-color: var(--line-2); }
+.btn.ghost:hover { border-color: var(--white); background: transparent; }
+.btn:disabled { opacity: .5; cursor: default; }
+.or { display: flex; align-items: center; gap: 12px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line-2); }
+form { display: grid; gap: 10px; }
+input { width: 100%; padding: 14px 16px; background: #0b0b0b; color: var(--white); border: 1px solid var(--line-2); outline: none; font: 400 15px/1 var(--sans); }
+input:focus { border-color: var(--white); }
+:focus-visible { outline: 1px solid var(--white); outline-offset: 3px; }
+.msg { min-height: 1.5em; margin: 0; font-size: 14px; color: var(--gray); }
+.msg.err { color: var(--alert); }
+.msg.ok { color: var(--white); }
+footer { padding: 16px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="classline"><i></i>INTERNAL USE ONLY // BLACK OPS // SUMMIT INTEGRATED SYSTEMS</div>
+<main>
+  <div class="card">
+    <span class="label">Restricted · Summit accounts only</span>
+    <h1>Black<br><em>Ops</em></h1>
+    <button class="btn" id="google" type="button">Continue with Google</button>
+    <div class="or label">or</div>
+    <form id="magic">
+      <input id="email" type="email" required autocomplete="email" placeholder="you@summitintegrated.com" aria-label="Work email">
+      <button class="btn ghost" id="send" type="submit">Email me a sign-in link</button>
+    </form>
+    <p class="msg" id="msg" role="status"></p>
+  </div>
+</main>
+<footer class="label">Use your @summitintegrated.com account</footer>
+<script>
+// Public Supabase project settings (the same project Apex signs in with). Safe to ship to the browser.
+const SUPABASE_URL = "https://wmmjwuilmebtqesjqtnl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_NMNrXvfUnc4oWmajg7nkaA_0n0y1wCs";
+const DOMAIN = "summitintegrated.com";
+
+const msg = document.getElementById("msg");
+const say = (text, kind) => { msg.textContent = text; msg.className = "msg" + (kind ? " " + kind : ""); };
+const params = new URLSearchParams(location.search);
+const next = params.get("next") || "/";
+try { sessionStorage.setItem("bo_next", next.startsWith("/") && !next.startsWith("//") ? next : "/"); } catch (e) {}
+if (params.get("signedout")) say("Signed out.");
+if (params.get("error")) say(params.get("error"), "err");
+const callback = location.origin + "/auth/callback";
+
+document.getElementById("google").addEventListener("click", () => {
+  const u = new URL(SUPABASE_URL + "/auth/v1/authorize");
+  u.searchParams.set("provider", "google");
+  u.searchParams.set("redirect_to", callback);
+  u.searchParams.set("hd", DOMAIN);               // Google shows Summit Workspace accounts
+  u.searchParams.set("prompt", "select_account");
+  location.href = u.toString();
+});
+
+document.getElementById("magic").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  if (!email.endsWith("@" + DOMAIN)) { say("Use your @" + DOMAIN + " email.", "err"); return; }
+  const btn = document.getElementById("send");
+  btn.disabled = true;
+  say("Sending…");
+  try {
+    const res = await fetch(SUPABASE_URL + "/auth/v1/otp?redirect_to=" + encodeURIComponent(callback), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+      body: JSON.stringify({ email, create_user: false })
+    });
+    if (res.ok) { say("Check your inbox. The link signs you in on this device.", "ok"); return; }
+    const body = await res.json().catch(() => ({}));
+    const text = (body.msg || body.error_description || body.message || "").toLowerCase();
+    if (text.includes("signup") || text.includes("not found")) say("There's no Apex account for that email yet. Use Continue with Google, or ask Tyson to add you.", "err");
+    else if (res.status === 429) say("Too many links requested. Wait a minute and try again.", "err");
+    else say("Couldn't send the link. Try Continue with Google.", "err");
+  } catch (err) {
+    say("Couldn't reach the sign-in service. Check your connection and try again.", "err");
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

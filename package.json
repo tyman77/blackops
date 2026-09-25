@@ -1,0 +1,9 @@
+{
+  "name": "blackops",
+  "private": true,
+  "type": "module",
+  "description": "Black Ops Command, hosted at blackops.summitintegrated.com behind Summit sign-in",
+  "dependencies": {
+    "@vercel/functions": "3.9.9"
+  }
+}

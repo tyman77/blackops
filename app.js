@@ -831,6 +831,9 @@
     );
   } catch (e) { /* console is optional */ }
 
+  // sign-out only exists on the hosted site (blackops.summitintegrated.com)
+  if (/summitintegrated\.com$|vercel\.app$/.test(location.hostname)) { const so = $("#signout"); if (so) so.hidden = false; }
+
   // ---------- boot ----------
   renderFilters();
   renderReel();

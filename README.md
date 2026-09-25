@@ -57,6 +57,20 @@ python3 -m http.server 8000
 
 Then visit http://localhost:8000. Deploys as-is to Vercel, Netlify, GitHub Pages or an internal server.
 
+## Hosting and sign-in
+
+Hosted on Vercel (team Summit Integrated System, project `blackops`) at
+https://blackops.summitintegrated.com, deploying on every push to this branch.
+
+Every request goes through `middleware.js`, which serves nothing (including `data.js`) without a
+valid `bo_session` cookie. People sign in on `/login` with Google (Summit Workspace accounts) or
+an emailed magic link, both handled by the Apex Supabase project. `/auth/callback` passes the
+Supabase token to `/api/auth/session`, which confirms the user with Supabase, checks the email is
+`@summitintegrated.com`, and sets a signed, HTTP-only cookie for 30 days. `/api/auth/logout` ends it.
+
+Environment variables (Vercel): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ALLOWED_DOMAIN`, `AUTH_SECRET`.
+Changing `AUTH_SECRET` signs everyone out.
+
 ## Daily updates
 
 A scheduled Claude session runs every weekday at about 6:45 AM Central and follows
