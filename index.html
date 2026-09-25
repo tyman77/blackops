@@ -390,6 +390,29 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
   .has-cursor .cursor { display: block; }
 }
 
+/* ---------- easter eggs ---------- */
+.big-foot { position: relative; cursor: default; }
+.big-foot .bf-b { position: absolute; left: 0; top: 40px; opacity: 0; -webkit-text-stroke: 1px var(--white); transition: opacity .8s var(--ease); }
+.big-foot .bf-a { transition: opacity .8s var(--ease); }
+.big-foot:hover .bf-a { opacity: 0; }
+.big-foot:hover .bf-b { opacity: 1; }
+.wordmark sup { transition: color .3s; cursor: default; }
+.wordmark sup.open { color: var(--white); }
+.summit-egg { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 24px;
+  background: linear-gradient(rgba(0,0,0,0) 38%, #000 66%), url("assets/summit.jpg") center -6vh / auto 92vh no-repeat, #000;
+  animation: eggIn 1.2s var(--ease) both; cursor: pointer; }
+@keyframes eggIn { from { opacity: 0; filter: blur(12px); } }
+.egg-inner { text-align: center; display: grid; gap: 22px; justify-items: center; margin-top: 44vh; }
+.egg-name { margin: 0; font: 400 clamp(56px, 10vw, 150px)/.82 var(--serif); text-transform: uppercase; letter-spacing: -.01em; text-shadow: 0 0 40px #000; }
+.egg-name em { font-size: .42em; color: #d0d0d0; letter-spacing: .04em; }
+.egg-line { margin: 0; font: 400 italic 20px/1.4 var(--serif); color: #c8c8c8; max-width: 36ch; text-shadow: 0 0 20px #000; }
+.egg-sig { color: var(--gray); }
+.peak-flag { position: absolute; z-index: 5; pointer-events: none; transform: translate(0, -100%); }
+.peak-flag i { display: block; width: 2px; height: 46px; background: var(--white); position: relative; transform-origin: bottom; animation: plant .7s var(--ease) both; }
+.peak-flag i::after { content: ""; position: absolute; left: 2px; top: 0; width: 26px; height: 16px; background: var(--white); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.peak-flag span { position: absolute; right: 12px; top: 0; text-shadow: 0 0 8px #000; white-space: nowrap; font: 500 10px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--white); animation: eggIn 1s .5s var(--ease) both; }
+@keyframes plant { from { transform: scaleY(0); } }
+
 /* ---------- command palette ---------- */
 .pal-scrim { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.78); backdrop-filter: blur(6px); display: grid; place-items: start center; padding: 14vh 16px 16px; }
 .pal { width: min(640px, 100%); background: var(--void); border: 1px solid var(--line-2); }
@@ -539,7 +562,7 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
 </section>
 
 <footer class="gutter">
-  <div class="big-foot" aria-hidden="true">Black Ops</div>
+  <div class="big-foot" aria-hidden="true"><span class="bf-a">Black Ops</span><span class="bf-b">Summit</span></div>
   <div class="foot" style="padding-top:0">
     <span class="label">Framework: The Algorithm (Jon McNeill) · sourced from Black Ops syncs and #project_black_ops · end dates are estimates</span>
     <span class="label">Press ⌘K or / to search</span>
@@ -558,6 +581,16 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
   </div>
   <div class="d-body gutter" id="dBody"></div>
 </div>
+
+<div class="summit-egg" id="summitEgg" role="dialog" aria-label="Summit Integrated Systems" hidden>
+  <div class="egg-inner">
+    <span class="label">Altitude clearance granted</span>
+    <p class="egg-name">Summit<br><em>Integrated Systems</em></p>
+    <p class="egg-line">Delete steps. Simplify steps. Then accelerate and automate.</p>
+    <span class="label egg-sig">Black Ops · Special Projects</span>
+  </div>
+</div>
+<div class="peak-flag" id="peakFlag" aria-hidden="true" hidden><i></i><span>Summit Integrated Systems</span></div>
 
 <div class="cursor" id="cursor" aria-hidden="true"><i></i><span id="cursorLbl">Open</span></div>
 

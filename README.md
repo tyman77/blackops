@@ -56,3 +56,12 @@ python3 -m http.server 8000
 ```
 
 Then visit http://localhost:8000. Deploys as-is to Vercel, Netlify, GitHub Pages or an internal server.
+
+## Easter eggs (don't spoil them for the team)
+
+- Konami code (↑ ↑ ↓ ↓ ← → ← → B A), or type `summit` anywhere: the Summit Integrated Systems card.
+- Triple-click the summit in the hero to plant a flag.
+- Hover the `SBO` mark, or the giant outlined BLACK OPS in the footer.
+- Double-click the red classification bar.
+- Search for `summit`.
+- Open the browser console.

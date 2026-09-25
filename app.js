@@ -679,6 +679,8 @@
       go: () => openFile(op.id)
     }));
     const secs = SECTIONS.map((s) => ({ ...s, hay: s.name.toLowerCase() }));
+    // easter egg: only surfaces when someone searches for it
+    if (q.length >= 4 && "summit integrated systems".includes(q)) secs.unshift({ kind: "You found it", name: "Summit Integrated Systems", sub: "Altitude clearance", hay: q, go: () => showSummit() });
     results = [...ops, ...secs].filter((r) => !q || q.split(/\s+/).every((w) => r.hay.includes(w))).slice(0, 12);
     sel = 0;
     draw();
@@ -751,6 +753,83 @@
     const el = document.getElementById(id);
     if (el) navObs.observe(el);
   });
+
+  // ---------- easter eggs: Summit Integrated Systems ----------
+  const egg = $("#summitEgg");
+  let eggTimer = 0;
+  function showSummit() {
+    closeFile();
+    if (!pal.hidden) closePal();
+    egg.hidden = false;
+    clearTimeout(eggTimer);
+    eggTimer = setTimeout(hideSummit, 7000);
+  }
+  function hideSummit() { egg.hidden = true; clearTimeout(eggTimer); }
+  egg.addEventListener("click", hideSummit);
+
+  // the Konami code, or typing "summit" anywhere outside a text field
+  const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
+  let seq = [], typed = "";
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !egg.hidden) { hideSummit(); return; }
+    if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+    seq = [...seq, e.key.length === 1 ? e.key.toLowerCase() : e.key].slice(-KONAMI.length);
+    if (seq.join() === KONAMI.join()) { seq = []; showSummit(); return; }
+    if (e.key.length === 1) {
+      typed = (typed + e.key.toLowerCase()).slice(-6);
+      if (typed === "summit") { typed = ""; showSummit(); }
+    }
+  });
+
+  // triple-click the peak to plant a flag on it
+  (function peakFlag() {
+    const hero = $(".hero"), flag = $("#peakFlag"), cv = $("#stage");
+    if (!hero || !flag || !cv) return;
+    hero.appendChild(flag);
+    const PEAK = { x: 0.5, y: 0.178 }; // where the summit sits in the hero image
+    const peakAt = () => {
+      const h = hero.getBoundingClientRect(), c = cv.getBoundingClientRect();
+      return { x: c.left - h.left + c.width * PEAK.x, y: c.top - h.top + c.height * PEAK.y, cx: c.left + c.width * PEAK.x, cy: c.top + c.height * PEAK.y };
+    };
+    const place = () => { const p = peakAt(); flag.style.left = `${p.x}px`; flag.style.top = `${p.y}px`; };
+    let clicks = [];
+    hero.addEventListener("click", (e) => {
+      if (cv.hidden || !cv.width) return;
+      const p = peakAt();
+      if (Math.hypot(e.clientX - p.cx, e.clientY - p.cy) > Math.max(60, cv.getBoundingClientRect().width * 0.09)) return;
+      const now = Date.now();
+      clicks = [...clicks.filter((t) => now - t < 1200), now];
+      if (clicks.length >= 3) { clicks = []; place(); flag.hidden = false; }
+    });
+    addEventListener("resize", () => { if (!flag.hidden) place(); });
+  })();
+
+  // the SBO mark spells itself out
+  (function mark() {
+    const sup = $("#unitShort");
+    if (!sup) return;
+    const short = sup.textContent;
+    sup.title = "Summit Integrated Systems";
+    sup.addEventListener("mouseenter", () => { sup.textContent = "SUMMIT INTEGRATED SYSTEMS"; sup.classList.add("open"); });
+    sup.addEventListener("mouseleave", () => { sup.textContent = short; sup.classList.remove("open"); });
+  })();
+
+  // double-click the classification bar
+  document.querySelectorAll(".classline").forEach((bar) => {
+    const html = bar.innerHTML;
+    bar.addEventListener("dblclick", () => {
+      bar.innerHTML = "<i></i>SUMMIT INTEGRATED SYSTEMS // BLACK OPS // ALTITUDE CLEARANCE";
+      setTimeout(() => { bar.innerHTML = html; }, 4000);
+    });
+  });
+
+  // for anyone who opens the console
+  try {
+    console.log(
+      "%c\n        /\\\n       /  \\    /\\\n      / /\\ \\  /  \\\n     / /  \\ \\/ /\\ \\\n    /_/    \\__/  \\_\\\n\n%cSUMMIT INTEGRATED SYSTEMS · BLACK OPS\n%cDelete steps. Simplify steps. Then accelerate and automate.\nTry the Konami code.",
+      "color:#9c9c9c;font-family:monospace", "color:#fff;font-weight:bold;letter-spacing:2px", "color:#9c9c9c"
+    );
+  } catch (e) { /* console is optional */ }
 
   // ---------- boot ----------
   renderFilters();
