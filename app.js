@@ -103,168 +103,73 @@
 
   // ---------- hero: one object, one light ----------
   (function stage() {
-    // The summit, drawn as a 2D ink study at the screen's own resolution: black rock, thin pale
-    // veins down the fall lines, one light glowing behind the peak. Moving the pointer moves the light.
+    // The summit is an image (D.HERO_IMAGE). A light background is removed by flood-filling in from
+    // the edges, so a black-on-white illustration sits on the black page; a soft light glows behind
+    // the peak and follows the pointer.
     const canvas = $("#stage");
-    const fallback = $("#fallback");
-    const g = canvas.getContext && canvas.getContext("2d");
-    if (!g) { canvas.hidden = true; return; }
-
-    let seed = 7;
-    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const PEAKS = [
-      { x: 0.52, h: 0.8, sl: 1.6, sr: 1.35 },
-      { x: 0.73, h: 0.47, sl: 1.35, sr: 1.1 },
-      { x: 0.31, h: 0.36, sl: 1.15, sr: 1.3 },
-      { x: 0.9, h: 0.27, sl: 1.0, sr: 0.9 },
-      { x: 0.12, h: 0.2, sl: 0.8, sr: 0.9 }
-    ];
-    const env = (x) => Math.max(0, ...PEAKS.map((p) => p.h - Math.abs(x - p.x) * (x < p.x ? p.sl : p.sr)));
-    const ridge = (x) => {
-      const e = env(x);
-      if (e <= 0) return 0;
-      return Math.max(0, e + (vnoise(x * 22, 3.3) - 0.5) * 0.07 * Math.sqrt(e) + (vnoise(x * 75, 8.1) - 0.5) * 0.022);
-    };
-    const nearestPeak = (x) => PEAKS.reduce((b, p) => (Math.abs(p.x - x) * (1.2 - p.h) < Math.abs(b.x - x) * (1.2 - b.h) ? p : b));
-
-    // geometry in mountain space: x 0..1 across, y 0 at the base rising to ~0.8 at the summit
-    const RIDGE = [];
-    for (let x = -0.03; x <= 1.03; x += 0.0015) RIDGE.push([x, ridge(x)]);
-    const SPURS = [];
-    seed = 7;
-    let tries = 0;
-    while (SPURS.length < 560 && tries++ < 12000) {
-      const x0 = rnd();
-      const top = ridge(x0);
-      if (top < 0.04 || rnd() > Math.pow(top / 0.8, 0.8)) continue;
-      const side = x0 < nearestPeak(x0).x ? -1 : 1;
-      if (side === 1 && rnd() < 0.35) continue;
-      const walk = (x, y, ang, len, width, depth) => {
-        const pts = [[x, y]];
-        const stepL = 0.0035;
-        for (let k = 0; k < len; k++) {
-          ang += (vnoise(x * 40 + depth * 9, y * 40) - 0.5) * 0.35;
-          ang = Math.max(0.1, Math.min(0.75, ang));
-          // mountain space is ~2.4x wider than tall on screen, so scale sideways steps to keep lines steep
-          x += (side * Math.sin(ang) * stepL) / 2.4;
-          y -= Math.cos(ang) * stepL;
-          if (y <= 0.005 || y > ridge(x) - 0.002) break;
-          pts.push([x, y]);
-          if (depth < 2 && rnd() < 0.035) walk(x, y, ang + (rnd() - 0.5) * 0.9, len * 0.45, width * 0.7, depth + 1);
+    const lightEl = $("#summitLight");
+    const src = D.HERO_IMAGE;
+    const fail = () => { canvas.hidden = true; };
+    if (!src || !canvas.getContext) return fail();
+    const img = new Image();
+    img.onerror = fail;
+    img.onload = () => {
+      const w = img.naturalWidth, h = img.naturalHeight;
+      canvas.width = w;
+      canvas.height = h;
+      canvas.style.aspectRatio = `${w} / ${h}`;
+      const g = canvas.getContext("2d");
+      g.drawImage(img, 0, 0);
+      let data;
+      try { data = g.getImageData(0, 0, w, h); } catch (e) { return; }
+      const px = data.data;
+      const lum = (i) => 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+      let edge = 0, n = 0;
+      // judge the sky only: the top row and the upper third of each side (the base is usually dark rock)
+      for (let x = 0; x < w; x += 4) { edge += lum(x * 4); n++; }
+      for (let y = 0; y < h / 3; y += 4) { edge += lum(y * w * 4) + lum((y * w + w - 1) * 4); n += 2; }
+      if (edge / n > 170) {
+        // light background: flood fill from every edge pixel through light pixels, make them clear
+        const bg = new Uint8Array(w * h), stack = [];
+        const T = 200;
+        const push = (x, y) => { const k = y * w + x; if (!bg[k] && lum(k * 4) > T) { bg[k] = 1; stack.push(k); } };
+        for (let x = 0; x < w; x++) push(x, 0);
+        for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+        while (stack.length) {
+          const k = stack.pop(), x = k % w, y = (k / w) | 0;
+          if (x > 0) push(x - 1, y);
+          if (x < w - 1) push(x + 1, y);
+          if (y > 0) push(x, y - 1);
+          if (y < h - 1) push(x, y + 1);
         }
-        if (pts.length > 3) SPURS.push({ pts, side, width, top: pts[0][1] });
-      };
-      walk(x0, top - 0.004, 0.2 + rnd() * 0.4, Math.floor(20 + rnd() * 130 * top), 0.5 + rnd() * 1.0, 0);
-    }
-
-    let W = 0, H = 0, dpr = 1, map = null, light = 0.3, want = 0.3, raf = 0;
-    const layout = () => {
-      const narrow = W < 700 * dpr;
-      return narrow
-        ? { x0: -0.08 * W, w: 1.16 * W, base: 0.97 * H, scale: 0.9 * H }
-        : { x0: 0.1 * W, w: 0.94 * W, base: 0.9 * H, scale: 0.8 * H };
-    };
-    const X = (x) => map.x0 + x * map.w;
-    const Y = (y) => map.base - y * map.scale;
-
-    function draw() {
-      g.fillStyle = "#000";
-      g.fillRect(0, 0, W, H);
-      const summit = PEAKS[0];
-      // the light, behind the summit
-      const gx = X(summit.x) + (light - 0.3) * W * 0.3, gy = Y(summit.h) + H * 0.02;
-      const glow = g.createRadialGradient(gx, gy, 0, gx, gy, H * 0.8);
-      glow.addColorStop(0, "rgba(255,255,255,0.24)");
-      glow.addColorStop(0.4, "rgba(255,255,255,0.08)");
-      glow.addColorStop(1, "rgba(255,255,255,0)");
-      g.fillStyle = glow;
-      g.fillRect(0, 0, W, H);
-
-      // silhouette
-      g.beginPath();
-      g.moveTo(X(RIDGE[0][0]), H);
-      RIDGE.forEach(([x, y]) => g.lineTo(X(x), Y(y)));
-      g.lineTo(X(RIDGE[RIDGE.length - 1][0]), H);
-      g.closePath();
-      const rock = g.createLinearGradient(0, Y(summit.h), 0, map.base);
-      rock.addColorStop(0, "#050505");
-      rock.addColorStop(1, "#000000");
-      g.fillStyle = rock;
-      g.fill();
-
-      // veins, bucketed by brightness so each bucket is one stroke call
-      g.save();
-      g.clip();
-      g.lineCap = "round";
-      g.lineJoin = "round";
-      const lit = { "-1": 1 - light * 0.9, "1": 0.15 + light * 0.75 };
-      const buckets = Array.from({ length: 10 }, () => []);
-      SPURS.forEach((sp) => {
-        const a = Math.min(1, (0.1 + 0.9 * lit[sp.side]) * (0.35 + 0.65 * Math.min(1, sp.top / 0.5)));
-        buckets[Math.min(9, Math.floor(a * 10))].push(sp);
-      });
-      buckets.forEach((list, b) => {
-        if (!list.length) return;
-        g.strokeStyle = `rgba(235,235,235,${(0.08 + b * 0.085).toFixed(3)})`;
-        list.forEach((sp) => {
-          g.lineWidth = sp.width * dpr;
-          g.beginPath();
-          sp.pts.forEach(([x, y], i) => (i ? g.lineTo(X(x), Y(y)) : g.moveTo(X(x), Y(y))));
-          g.stroke();
-        });
-      });
-      g.restore();
-
-      // rim light along the crest, brighter on faces turned toward the light
-      g.lineWidth = 1.2 * dpr;
-      for (let i = 1; i < RIDGE.length; i++) {
-        const [x1, y1] = RIDGE[i - 1], [x2, y2] = RIDGE[i];
-        const facingLeft = y2 > y1;
-        const a = (facingLeft ? 1 - light * 0.8 : 0.1 + light * 0.6) * Math.min(1, (y1 + y2) * 1.6);
-        if (a < 0.05) continue;
-        g.strokeStyle = `rgba(255,255,255,${a.toFixed(3)})`;
-        g.beginPath();
-        g.moveTo(X(x1), Y(y1));
-        g.lineTo(X(x2), Y(y2));
-        g.stroke();
+        for (let k = 0; k < w * h; k++) {
+          if (bg[k]) { px[k * 4 + 3] = 0; continue; }
+          // soften the silhouette edge where it meets cleared background
+          const x = k % w, y = (k / w) | 0;
+          if ((x > 0 && bg[k - 1]) || (x < w - 1 && bg[k + 1]) || (y > 0 && bg[k - w]) || (y < h - 1 && bg[k + w])) px[k * 4 + 3] = 150;
+        }
+        g.putImageData(data, 0, 0);
+        canvas.classList.add("cutout");
+      } else {
+        canvas.classList.add("dark");
       }
-
-      // the base melts into the page
-      const fade = g.createLinearGradient(0, map.base - H * 0.28, 0, H);
-      fade.addColorStop(0, "rgba(0,0,0,0)");
-      fade.addColorStop(0.75, "rgba(0,0,0,0.92)");
-      fade.addColorStop(1, "#000");
-      g.fillStyle = fade;
-      g.fillRect(0, map.base - H * 0.28, W, H);
-    }
-
-    const size = () => {
-      dpr = Math.min(devicePixelRatio || 1, 2);
-      W = Math.max(1, Math.round(canvas.clientWidth * dpr));
-      H = Math.max(1, Math.round(canvas.clientHeight * dpr));
-      canvas.width = W;
-      canvas.height = H;
-      map = layout();
-      draw();
     };
-    size();
-    if (window.ResizeObserver) new ResizeObserver(size).observe(canvas);
-    else addEventListener("resize", size);
+    img.src = src;
 
-    const tick = () => {
-      raf = 0;
-      light += (want - light) * (reduced ? 1 : 0.12);
-      draw();
-      if (Math.abs(want - light) > 0.002) raf = requestAnimationFrame(tick);
-    };
     const hero = canvas.parentElement;
+    let want = 0.5, at = 0.5, raf = 0;
+    const move = () => {
+      raf = 0;
+      at += (want - at) * (reduced ? 1 : 0.1);
+      if (lightEl) lightEl.style.setProperty("--lx", `${(at * 100).toFixed(2)}%`);
+      if (Math.abs(want - at) > 0.001) raf = requestAnimationFrame(move);
+    };
     hero.addEventListener("pointermove", (e) => {
-      const r = canvas.getBoundingClientRect();
-      want = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-      if (!raf) raf = requestAnimationFrame(tick);
+      const r = hero.getBoundingClientRect();
+      want = 0.35 + 0.3 * ((e.clientX - r.left) / r.width);
+      if (!raf) raf = requestAnimationFrame(move);
     });
-    hero.addEventListener("pointerleave", () => { want = 0.3; if (!raf) raf = requestAnimationFrame(tick); });
-    fallback.hidden = true;
+    hero.addEventListener("pointerleave", () => { want = 0.5; if (!raf) raf = requestAnimationFrame(move); });
   })();
 
   // ---------- the ascent ----------

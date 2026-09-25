@@ -38,6 +38,9 @@ window.BLACKOPS = {
   },
   asOf: "2026-09-25",
 
+  // hero art: a mountain image. A light background is removed automatically.
+  HERO_IMAGE: "assets/summit.png",
+
   CHANNEL: {
     name: "#project_black_ops",
     url: "https://summitrocks.slack.com/archives/C0BTG1DMRRN",

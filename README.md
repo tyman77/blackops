@@ -14,8 +14,9 @@ on each objective.
 
 ## Views
 
-- **Hero**: the summit, drawn as a 2D ink study at screen resolution: black rock, thin pale
-  veins down the fall lines, one light glowing behind the peak. Move the pointer to shift the light.
+- **Hero**: the summit image (`HERO_IMAGE` in `data.js`, default `assets/summit.png`) with one
+  light glowing behind it that follows the pointer. A light background is removed automatically,
+  so a black-on-white illustration sits on the black page. Swap the file to change the mountain.
 - **The Ascent**: every operation planted as a flag on one ridge, from Base Camp through
   Camps I–III to the Summit, by share of objectives cleared. Live and complete operations stand on the summit.
 - **The Files**: horizontal reel of every operation. Filter by status, scroll sideways with the wheel or arrows.
