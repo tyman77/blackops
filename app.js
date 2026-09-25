@@ -40,6 +40,16 @@
   const roman = (i) => ROMAN[i] || String(i + 1);
   const idx = (op) => OPS.indexOf(op);
 
+  // value noise, shared by the summit model and the contour texture
+  const hash2 = (x, y) => { const v = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return v - Math.floor(v); };
+  const vnoise = (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = hash2(xi, yi), b = hash2(xi + 1, yi), c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  };
+  const fbm = (x, y, o = 4) => { let t = 0, amp = 0.5, f = 1; for (let i = 0; i < o; i++) { t += amp * vnoise(x * f, y * f); f *= 2; amp *= 0.5; } return t; };
+
   const progress = (op) => {
     if (op.status === "complete") return 1;
     const o = op.objectives || [];
@@ -108,79 +118,136 @@
     renderer.outputEncoding = THREE.sRGBEncoding;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x000000, 9, 20);
+    scene.fog = new THREE.Fog(0x000000, 12, 28);
     const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
 
-    const obj = new THREE.Mesh(
-      new THREE.TorusKnotGeometry(1, 0.34, 260, 40, 2, 3),
-      new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.92, roughness: 0.26 })
-    );
-    obj.castShadow = true;
-    obj.position.y = 1.55;
-    scene.add(obj);
+    // the summit: one faceted peak, contour lines traced on it like a topo model
+    const N = 170, SPAN = 10, R = 4.3;
+    const height = (x, z) => {
+      const r = Math.hypot(x, z);
+      if (r >= R) return 0;
+      const k = 1 - r / R;
+      const ridge = 1 - Math.abs(fbm(x * 0.55 + 3.1, z * 0.55 + 7.3) * 2 - 1);
+      const sub = fbm(x * 0.9 - 4.2, z * 0.9 + 1.7);
+      const h = 2.9 * Math.pow(k, 1.25) * (0.3 + 0.7 * ridge) * (0.75 + 0.5 * sub) + 0.9 * Math.exp(-(x * x + z * z) / 1.3) * k;
+      return h * (1 - Math.pow(r / R, 10));
+    };
+    const terrainGeo = new THREE.PlaneGeometry(SPAN, SPAN, N, N);
+    terrainGeo.rotateX(-Math.PI / 2);
+    const pos = terrainGeo.attributes.position;
+    let peak = { x: 0, y: 0, z: 0 };
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), z = pos.getZ(i), y = height(x, z);
+      pos.setY(i, y);
+      if (y > peak.y) peak = { x, y, z };
+    }
+    terrainGeo.computeVertexNormals();
+    const terrain = new THREE.Mesh(terrainGeo, new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.3, roughness: 0.7, flatShading: true }));
+    terrain.castShadow = true;
+    terrain.receiveShadow = true;
+
+    // marching squares over the same height field, one ring per elevation band
+    const grid = [];
+    for (let i = 0; i <= N; i++) {
+      grid.push([]);
+      for (let j = 0; j <= N; j++) grid[i].push(height(-SPAN / 2 + (SPAN * j) / N, -SPAN / 2 + (SPAN * i) / N));
+    }
+    const seg = [];
+    const cx = (j) => -SPAN / 2 + (SPAN * j) / N;
+    for (let L = 0.22; L < peak.y; L += 0.22) {
+      for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+        const c = [[i, j], [i, j + 1], [i + 1, j + 1], [i + 1, j]];
+        const v = c.map(([a, b]) => grid[a][b]);
+        if (Math.max(...v) < L || Math.min(...v) > L) continue;
+        const hits = [];
+        for (let e = 0; e < 4; e++) {
+          const a = v[e], b = v[(e + 1) % 4];
+          if ((a < L) === (b < L)) continue;
+          const t = (L - a) / (b - a);
+          const [ia, ja] = c[e], [ib, jb] = c[(e + 1) % 4];
+          hits.push([cx(ja + (jb - ja) * t), L + 0.015, cx(ia + (ib - ia) * t)]);
+        }
+        if (hits.length >= 2) seg.push(...hits[0], ...hits[1]);
+        if (hits.length === 4) seg.push(...hits[2], ...hits[3]);
+      }
+    }
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute("position", new THREE.Float32BufferAttribute(seg, 3));
+    const contours = new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 }));
+
+    // a flag on the summit
+    const white = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.8, 6), white);
+    pole.position.set(peak.x, peak.y + 0.4, peak.z);
+    const flagShape = new THREE.Shape();
+    flagShape.moveTo(0, 0); flagShape.lineTo(0.42, -0.12); flagShape.lineTo(0, -0.24); flagShape.lineTo(0, 0);
+    const flag = new THREE.Mesh(new THREE.ShapeGeometry(flagShape), white);
+    flag.position.set(peak.x, peak.y + 0.8, peak.z);
+
+    const mountain = new THREE.Group();
+    mountain.add(terrain, contours, pole, flag);
+    scene.add(mountain);
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(80, 80),
-      new THREE.MeshStandardMaterial({ color: 0x0c0c0c, roughness: 0.95, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0x070707, roughness: 1, metalness: 0 })
     );
     floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -0.01;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    const light = new THREE.SpotLight(0xffffff, 3.2, 30, 0.42, 0.85, 1.4);
-    light.position.set(1.5, 9, 2.5);
-    light.target = obj;
+    const aim = new THREE.Object3D();
+    aim.position.set(0, 1.2, 0);
+    scene.add(aim);
+    const light = new THREE.SpotLight(0xffffff, 2.4, 40, 0.42, 0.8, 1.3);
+    light.position.set(3.5, 10, 2.5);
+    light.target = aim;
     light.castShadow = true;
     light.shadow.mapSize.set(2048, 2048);
-    light.shadow.bias = -0.0004;
-    light.shadow.radius = 6;
+    light.shadow.bias = -0.0006;
+    light.shadow.normalBias = 0.03;
+    light.shadow.radius = 5;
     scene.add(light);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.035));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.04));
 
     const size = () => {
       const w = canvas.clientWidth, h = canvas.clientHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       const narrow = w < 700;
-      camera.position.set(0, narrow ? 3.2 : 2.6, narrow ? 13 : 10);
-      camera.lookAt(0, narrow ? 2.1 : 1.3, 0);
+      camera.position.set(0, narrow ? 7 : 5.2, narrow ? 19 : 13.5);
+      camera.lookAt(0, narrow ? 3.2 : 2.1, 0);
       camera.updateProjectionMatrix();
     };
     size();
     addEventListener("resize", size);
+    if (window.ResizeObserver) new ResizeObserver(() => { size(); if (typeof frame === "function") frame(); }).observe(canvas);
 
-    // drag to spin, with inertia; the light drifts toward the pointer
-    let vx = reduced ? 0 : 0.004, vy = 0, drag = null, px = 0.5, lx = 1.5;
+    // drag to turn the mountain, with inertia; the light drifts toward the pointer
+    const idle = reduced ? 0 : 0.0016;
+    let vx = idle, drag = null, px = 0.5, lx = 2.5;
     canvas.style.touchAction = "pan-y";
-    canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX }; canvas.setPointerCapture(e.pointerId); });
     canvas.addEventListener("pointermove", (e) => {
       const r = canvas.getBoundingClientRect();
       px = (e.clientX - r.left) / r.width;
       if (!drag) return;
       vx = (e.clientX - drag.x) * 0.0022;
-      vy = (e.clientY - drag.y) * 0.0016;
-      drag = { x: e.clientX, y: e.clientY };
+      drag = { x: e.clientX };
       if (reduced) frame();
     });
     const end = () => { drag = null; };
     canvas.addEventListener("pointerup", end);
     canvas.addEventListener("pointercancel", end);
 
-    let visible = true, t = 0;
+    let visible = true;
     new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe(canvas);
 
     function frame() {
-      obj.rotation.y += vx;
-      obj.rotation.x += vy;
-      if (!drag) {
-        vx += ((reduced ? 0 : 0.004) - vx) * 0.03;
-        vy *= 0.94;
-      }
-      if (!reduced) {
-        t += 0.01;
-        obj.position.y = 1.55 + Math.sin(t) * 0.12;
-      }
-      lx += ((px - 0.5) * 7 - lx) * 0.04;
+      mountain.rotation.y += vx;
+      if (!drag) vx += (idle - vx) * 0.03;
+      lx += ((px - 0.5) * 8 + 1 - lx) * 0.04;
       light.position.x = lx;
       renderer.render(scene, camera);
     }
@@ -188,9 +255,113 @@
       if (visible && !document.hidden) frame();
       requestAnimationFrame(loop);
     }
+    mountain.rotation.y = 0.6;
     frame();
     fallback.hidden = true;
     if (!reduced) requestAnimationFrame(loop);
+  })();
+
+  // ---------- the ascent ----------
+  (function ascent() {
+    const svg = $("#ascentSvg");
+    if (!svg) return;
+    const W = 1200, BASE = 410, TOP = 150, X0 = 90, X1 = 960;
+    // elevation rises steadily with progress (small wobble, never downhill), so height reads true
+    const elev = (t) => t + 0.05 * Math.sin(3 * Math.PI * t);
+    const rx = (t) => X0 + (X1 - X0) * t;
+    const ry = (t) => BASE - (BASE - TOP) * elev(t);
+    const atSummit = (op) => op.status === "live" || op.status === "complete";
+    const T = (op) => (atSummit(op) ? 1 : Math.min(0.97, progress(op)));
+
+    let ridge = `M0 460 L0 ${BASE + 18} L${X0 - 40} ${BASE + 6}`;
+    for (let i = 0; i <= 80; i++) { const t = i / 80; ridge += ` L${rx(t).toFixed(1)} ${ry(t).toFixed(1)}`; }
+    ridge += ` L1010 196 L1040 184 L1085 238 L1120 226 L1200 300 L1200 460 Z`;
+    // a far range behind for depth
+    let far = "M0 460 L0 330";
+    for (let i = 0; i <= 60; i++) { const x = (W * i) / 60; far += ` L${x.toFixed(1)} ${(300 - 150 * Math.pow(Math.sin(Math.PI * i / 60), 1.4) - 40 * fbm(i * 0.35, 2.2)).toFixed(1)}`; }
+    far += " L1200 460 Z";
+
+    let out = `<defs><linearGradient id="rockfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1c1c"/><stop offset="1" stop-color="#000000"/></linearGradient></defs>`;
+    out += `<path d="${far}" fill="#090909" stroke="rgba(255,255,255,.1)" stroke-width="1"/>`;
+    out += `<path d="${ridge}" fill="url(#rockfill)" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/>`;
+
+    // camps along the route
+    [[0, "Base camp"], [0.25, "Camp I"], [0.5, "Camp II"], [0.75, "Camp III"]].forEach(([t, name]) => {
+      out += `<line x1="${rx(t)}" y1="${ry(t)}" x2="${rx(t)}" y2="${ry(t) + 14}" stroke="#9C9C9C"/>`;
+      out += `<text x="${rx(t)}" y="${ry(t) + 30}" text-anchor="middle" font-size="11" letter-spacing="2" fill="#9C9C9C">${name.toUpperCase()}</text>`;
+      out += `<text x="${rx(t)}" y="${ry(t) + 45}" text-anchor="middle" font-size="10" letter-spacing="1.5" fill="#555555">${Math.round(t * 100)}%</text>`;
+    });
+    out += `<line x1="${rx(1)}" y1="${ry(1)}" x2="${rx(1)}" y2="${ry(1) - 44}" stroke="#FFFFFF" stroke-width="1.5"/>`;
+    out += `<path d="M${rx(1)} ${ry(1) - 44} L${rx(1) + 26} ${ry(1) - 37} L${rx(1)} ${ry(1) - 30} Z" fill="#FFFFFF"/>`;
+    out += `<text x="${rx(1)}" y="${ry(1) - 54}" text-anchor="middle" font-size="12" letter-spacing="3" fill="#FFFFFF">SUMMIT</text>`;
+
+    // one flag per operation. Higher on the ridge gets a higher label row, and labels run left of
+    // their pole, so no label ever crosses another flag's pole.
+    const ops = [...OPS].sort((a, b) => T(a) - T(b) || idx(a) - idx(b));
+    const rowY = (k) => 34 + (ops.length - 1 - k) * 26;
+    const seen = {};
+    ops.forEach((op, k) => {
+      const t = T(op), key = t.toFixed(3);
+      const dup = (seen[key] = (seen[key] || 0) + 1) - 1;
+      const summit = atSummit(op);
+      const px = summit ? rx(1) + 34 + dup * 16 : rx(t) + dup * 14;
+      const py = summit ? ry(1) + 2 : ry(t + dup * 0.012);
+      const ly = rowY(k);
+      const tag = summit ? STATUS[op.status].toUpperCase() : `${Math.round(t * 100)}%`;
+      const w = (op.codename.length + tag.length + 1) * 7.4 + 20;
+      const left = px - w > 8;
+      const fill = summit || op.status === "active" || op.status === "extraction" ? "#FFFFFF" : "#000000";
+      out += `<g class="climber" tabindex="0" role="button" data-op="${op.id}" data-cursor="Open file" aria-label="${esc(op.codename)}, ${esc(op.title)}: ${summit ? STATUS[op.status] : `${Math.round(t * 100)}% of objectives cleared`}">
+        <line class="pole" x1="${px}" y1="${py}" x2="${px}" y2="${ly - 9}" stroke="rgba(255,255,255,.45)" stroke-width="1"/>
+        <rect class="flagbox" x="${left ? px - 12 : px}" y="${ly - 9}" width="12" height="8" fill="#9C9C9C"/>
+        <text x="${left ? px - 18 : px + 18}" y="${ly}" text-anchor="${left ? "end" : "start"}" font-size="12" letter-spacing="1.2" fill="#FFFFFF">${esc(op.codename)} <tspan fill="#9C9C9C">${tag}</tspan></text>
+        <circle cx="${px}" cy="${py}" r="5.5" fill="${fill}" stroke="#FFFFFF" stroke-width="1.5"${op.status === "hold" ? ' stroke-dasharray="2 2"' : ""}/>
+      </g>`;
+    });
+    svg.innerHTML = out;
+    const go = (e) => { const g = e.target.closest("[data-op]"); if (g) openFile(g.dataset.op, g); };
+    svg.addEventListener("click", go);
+    svg.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e); } });
+
+    const climbing = OPS.filter((o) => !atSummit(o));
+    const avg = climbing.length ? climbing.reduce((a, o) => a + progress(o), 0) / climbing.length : 1;
+    $("#ascentStats").innerHTML = `
+      <div><strong class="num">${OPS.filter(atSummit).length}</strong><span class="label">On the summit</span></div>
+      <div><strong class="num">${climbing.length}</strong><span class="label">On the climb</span></div>
+      <div><strong class="num">${Math.round(avg * 100)}%</strong><span class="label">Average height</span></div>`;
+  })();
+
+  // ---------- topographic texture ----------
+  (function topo() {
+    try {
+      const c = document.createElement("canvas");
+      const Wd = 1400, Ht = 900, S = 10;
+      c.width = Wd; c.height = Ht;
+      const g = c.getContext("2d");
+      g.strokeStyle = "rgba(255,255,255,0.07)";
+      g.lineWidth = 1;
+      const cols = Wd / S + 1, rowsN = Ht / S + 1;
+      const f = [];
+      for (let i = 0; i < rowsN; i++) { f.push([]); for (let j = 0; j < cols; j++) f[i].push(fbm(j * 0.03 + 11, i * 0.03 + 5, 5)); }
+      g.beginPath();
+      for (let L = 0.2; L < 0.8; L += 0.035) {
+        for (let i = 0; i < rowsN - 1; i++) for (let j = 0; j < cols - 1; j++) {
+          const cs = [[i, j], [i, j + 1], [i + 1, j + 1], [i + 1, j]];
+          const v = cs.map(([a, b]) => f[a][b]);
+          const hits = [];
+          for (let e = 0; e < 4; e++) {
+            const a = v[e], b = v[(e + 1) % 4];
+            if ((a < L) === (b < L)) continue;
+            const t = (L - a) / (b - a);
+            const [ia, ja] = cs[e], [ib, jb] = cs[(e + 1) % 4];
+            hits.push([(ja + (jb - ja) * t) * S, (ia + (ib - ia) * t) * S]);
+          }
+          for (let h = 0; h + 1 < hits.length; h += 2) { g.moveTo(...hits[h]); g.lineTo(...hits[h + 1]); }
+        }
+      }
+      g.stroke();
+      document.documentElement.style.setProperty("--topo", `url(${c.toDataURL("image/png")})`);
+    } catch (e) { /* texture is decorative */ }
   })();
 
   // ---------- the algorithm ----------
@@ -599,6 +770,7 @@
   const pal = $("#palScrim"), input = $("#palInput"), list = $("#palList");
   let sel = 0, results = [];
   const SECTIONS = [
+    { kind: "Section", name: "The Ascent", sub: "Every operation on the climb to the summit", go: () => jump("#ascent") },
     { kind: "Section", name: "The Algorithm", sub: "Question, delete, simplify, accelerate, automate", go: () => jump("#algorithm") },
     { kind: "Section", name: "Operations", sub: "Horizontal index of every file", go: () => jump("#operations") },
     { kind: "Section", name: "Radar", sub: "Impact vs effort", go: () => jump("#radar") },
@@ -684,7 +856,7 @@
       if (en.isIntersecting) links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${en.target.id}`));
     });
   }, { rootMargin: "-45% 0px -50% 0px" });
-  ["algorithm", "operations", "radar", "timeline", "intel"].forEach((id) => {
+  ["ascent", "algorithm", "operations", "radar", "timeline", "intel"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) navObs.observe(el);
   });
