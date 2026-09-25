@@ -44,6 +44,23 @@ window.BLACKOPS = {
   // hero art: a mountain image. A light background is removed automatically.
   HERO_IMAGE: "assets/summit.jpg",
 
+  // Where the daily update run reads from, and how far it has read. See ops/daily-update.md.
+  // The run advances these after each sync so nothing is added twice.
+  SYNC: {
+    lastRun: "2026-09-25",
+    slack: {
+      blackops: { channelId: "C0BTG1DMRRN", lastTs: "1790338823.956439" },
+      apex: { channelId: "C0B64PRPUUD", lastTs: "1790288747.127679" }
+    },
+    clickup: {
+      workspaceId: "90131236057",
+      meetingTitle: "Project Black Ops Updates",
+      knownDocs: ["2ky3v16t-230833", "2ky3v16t-252413", "2ky3v16t-263493"]
+    },
+    topo: { url: null, lastChecked: null },
+    artifactUrl: "https://claude.ai/artifact/U8bbbfWX9r1bpVV3iHyZJw"
+  },
+
   CHANNEL: {
     name: "#project_black_ops",
     url: "https://summitrocks.slack.com/archives/C0BTG1DMRRN",
