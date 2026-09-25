@@ -20,6 +20,12 @@
   const redact = (t) => esc(t).replace(/\[\[(.+?)\]\]/g, '<span class="redact" tabindex="0" title="Classified. Hover to reveal">$1</span>');
   const plain = (t) => String(t).replace(/\[\[(.+?)\]\]/g, "$1");
   const MEET = D.MEETINGS || {};
+  const CH = D.CHANNEL;
+  const srcLink = (i) => {
+    if (i.src && MEET[i.src]) return ` <a class="src" href="${esc(MEET[i.src].url)}" target="_blank" rel="noopener">Meeting notes ↗</a>`;
+    if (i.slack && CH) return ` <a class="src" href="${esc(`${CH.url}/${i.slack}`)}" target="_blank" rel="noopener">Slack ↗</a>`;
+    return "";
+  };
   const fmtMonth = (s) => { const d = date(s); return `${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`; };
   const date = (s) => new Date(s + "T12:00:00");
   const fmt = (s) => { const d = date(s); return `${String(d.getDate()).padStart(2, "0")} ${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`; };
@@ -392,7 +398,15 @@
     const el = $("#briefings");
     const list = Object.values(MEET).sort((a, b) => date(b.date) - date(a.date));
     if (!el || !list.length) { if (el) el.hidden = true; return; }
-    el.innerHTML = list.map((m) => `
+    const latest = OPS.flatMap((op) => (op.intel || []).filter((i) => i.slack)).sort((a, b) => date(b.date) - date(a.date))[0];
+    const chan = CH ? `
+      <a class="brief-card chan" href="${esc(CH.url)}" target="_blank" rel="noopener" data-cursor="Open Slack">
+        <span class="label num">Slack${latest ? ` · last post ${fmt(latest.date)}` : ""}</span>
+        <b>${esc(CH.name)}</b>
+        <span class="brief-sum">${esc(CH.summary)}</span>
+        <span class="open-cue">Open channel</span>
+      </a>` : "";
+    el.innerHTML = chan + list.map((m) => `
       <a class="brief-card" href="${esc(m.url)}" target="_blank" rel="noopener" data-cursor="Open notes">
         <span class="label num">${fmt(m.date)} · ${m.attendees.length} attendees</span>
         <b>${esc(m.title)}</b>
@@ -408,7 +422,7 @@
     const el = $("#log");
     el.innerHTML = rows.map((r) => `
       <button class="log-row" type="button" data-op="${r.op.id}" data-cursor="Open file">
-        <span class="label num">${fmt(r.date)}</span><span class="c">${esc(r.op.codename)}</span><span>${redact(r.text)}</span><span class="arrow">→</span>
+        <span class="label num">${fmt(r.date)}</span><span class="c">${esc(r.op.codename)}</span><span>${redact(r.text)}${r.slack ? ' <span class="via">Slack</span>' : ""}</span><span class="arrow">→</span>
       </button>`).join("");
     el.addEventListener("click", (e) => { const r = e.target.closest("[data-op]"); if (r) openFile(r.dataset.op, r); });
   })();
@@ -472,7 +486,7 @@
         <div style="display:grid;gap:56px;align-content:start">
           <div class="d-sec"><h3>Outcomes</h3><div class="outcomes">${outcomes || '<p class="label">No outcomes defined yet</p>'}</div></div>
           <div class="d-sec"><h3>Risks</h3><div>${(op.risks || []).length ? op.risks.map((r) => `<div class="risk"><span class="sev sev-${r.sev}">${r.sev === "med" ? "Medium" : r.sev}</span><span>${redact(r.text)}</span></div>`).join("") : '<p class="label">No open risks</p>'}</div></div>
-          <div class="d-sec"><h3>Intel log</h3><div class="feed">${(op.intel || []).map((i) => `<div><time datetime="${i.date}">${fmt(i.date)}</time><span>${redact(i.text)}${i.src && MEET[i.src] ? ` <a class="src" href="${esc(MEET[i.src].url)}" target="_blank" rel="noopener">Meeting notes ↗</a>` : ""}</span></div>`).join("")}</div></div>
+          <div class="d-sec"><h3>Intel log</h3><div class="feed">${(op.intel || []).map((i) => `<div><time datetime="${i.date}">${fmt(i.date)}</time><span>${redact(i.text)}${srcLink(i)}</span></div>`).join("")}</div></div>
         </div>
       </div>`;
 

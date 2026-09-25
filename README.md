@@ -21,7 +21,8 @@ Deep links: `index.html#BO-003` opens that file directly.
 All content lives in `data.js`. Edit an entry or copy one to add an operation.
 Wrap text in `[[double brackets]]` to render it as a redaction bar that reveals on hover.
 
-Content comes from the Black Ops sync notes (08/11, 09/08, 09/22/2026) in ClickUp. Codenames,
+Content comes from the Black Ops sync notes (08/11, 09/08, 09/22/2026) in ClickUp and the
+#project_black_ops Slack channel. Reference a Slack post from an intel entry with `slack: "p<ts>"`. Codenames,
 impact/effort scores and phase end dates are estimates. Add a meeting to `MEETINGS` and
 reference it from an intel entry with `src` to link the update back to its notes.
 

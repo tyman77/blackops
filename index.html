@@ -197,6 +197,7 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 .brief-card { background: var(--black); padding: 22px; display: grid; gap: 12px; align-content: start; text-decoration: none; transition: background .3s; }
 .brief-card:hover { background: var(--void); }
 .brief-card b { font: 400 30px/1 var(--serif); text-transform: uppercase; }
+.brief-card.chan b { font-size: 22px; text-transform: none; font-family: var(--mono); overflow-wrap: anywhere; }
 .brief-sum { color: var(--gray); font-size: 14px; }
 .brief-who { display: flex; }
 .brief-who .av { margin-left: -6px; border: 2px solid var(--black); }
@@ -263,6 +264,7 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 .who { font: 500 10px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--gray); white-space: nowrap; padding-top: 2px; }
 .src { font: 500 10px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--gray); text-decoration: none; border-bottom: 1px solid var(--line-2); margin-left: 6px; white-space: nowrap; }
 .src:hover { color: var(--white); border-color: var(--white); }
+.via { font: 500 9px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gray); border: 1px solid var(--line-2); padding: 2px 5px; margin-left: 6px; vertical-align: 2px; }
 .phases { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
 .ph { display: grid; gap: 8px; }
 .ph i { height: 2px; background: var(--line-2); }
@@ -408,7 +410,7 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 <section class="sec gutter" id="intel" aria-label="Intel log">
   <div class="sec-head">
     <div><div class="label">Intel log</div><h2>Latest field reports</h2></div>
-    <div class="label">From the Black Ops syncs</div>
+    <div class="label">From the syncs and #project_black_ops</div>
   </div>
   <div class="briefings" id="briefings"></div>
   <div class="log" id="log"></div>
@@ -417,7 +419,7 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 <footer class="gutter">
   <div class="big-foot" aria-hidden="true">Black Ops</div>
   <div class="foot" style="padding-top:0">
-    <span class="label">Sourced from Black Ops syncs 11 Aug, 8 Sep and 22 Sep 2026 · end dates are estimates</span>
+    <span class="label">Sourced from Black Ops syncs (11 Aug, 8 Sep, 22 Sep) and #project_black_ops · end dates are estimates</span>
     <span class="label">Press ⌘K or / to search</span>
   </div>
 </footer>

@@ -2,7 +2,8 @@
  * BLACK OPS: initiative data.
  * Everything on the dashboard is generated from this file.
  *
- * Sourced from the Black Ops sync notes of 08/11, 09/08 and 09/22/2026 (ClickUp).
+ * Sourced from the Black Ops sync notes of 08/11, 09/08 and 09/22/2026 (ClickUp)
+ * and the #project_black_ops Slack channel through 09/24/2026.
  * Codenames, impact/effort scores and phase end dates are planning estimates;
  * adjust them as the team firms up targets.
  *
@@ -13,12 +14,19 @@
  * impact / effort: 1–10 (drives the Radar view)
  * objectives: { text, done, owner?, due? }
  * outcomes:   { label, value, detail, state: "met" | "on" | "pending" | "behind" }
- * intel:      { date, text, src? }  src = key into MEETINGS
+ * intel:      { date, text, src?, slack? }
+ *             src = key into MEETINGS; slack = message id (p + ts without the dot)
  */
 window.BLACKOPS = {
   unit: "Summit Black Ops",
   mandate: "Delete steps. Simplify steps. Then accelerate and automate, across sales, engineering, warehouse and install.",
   asOf: "2026-09-25",
+
+  CHANNEL: {
+    name: "#project_black_ops",
+    url: "https://summitrocks.slack.com/archives/C0BTG1DMRRN",
+    summary: "Day-to-day thread for the team: prototypes, kit specs, assembly proposals and things worth copying."
+  },
 
   MEETINGS: {
     "0811": {
@@ -66,6 +74,8 @@ window.BLACKOPS = {
       objectives: [
         { text: "Define networked breakout architecture (RJ45 → DB25 → XLR, terminal-block RIO option)", done: true, owner: "Adam" },
         { text: "V1 / V2 CAT-to-multipin and CAT-to-XLR PCB prototypes, incl. W1 to 3× RJ45", done: true, owner: "Cameron" },
+        { text: "Order parts and PCBs for the first audio-over-Cat tests", done: true, owner: "Travis" },
+        { text: "Patent check on Catalyst (Venueflex) and similar products: nothing found", done: true, owner: "Tyson & Adam" },
         { text: "Test-fit PCB chassis connectors in plates and confirm rear mounting", done: true, owner: "Ben T." },
         { text: "Run a 150–200 ft test and validate the W1 Medusa 12-XLR breakout", done: false, owner: "Adam" },
         { text: "Research grounding, pin-1, EMI, solder and corrosion standards; write a test plan", done: false, owner: "Adam" },
@@ -87,11 +97,15 @@ window.BLACKOPS = {
       risks: [
         { text: "Grounding and pin-1 behaviour that won't show up in a lab test", sev: "high" },
         { text: "EMI, solder type and conductor material affecting signal integrity over time", sev: "med" },
-        { text: "Rack unit looking like a bare panel instead of a finished product", sev: "low" }
+        { text: "Rack unit looking like a bare panel instead of a finished product", sev: "low" },
+        { text: "Off-the-shelf Cat-to-XLR systems (Catalyst, Whirlwind CATMASTER) already exist; build must beat buy", sev: "low" }
       ],
       intel: [
         { date: "2026-09-22", text: "PCBs for analog over shielded Cat6 arrived. Back boxes ordered with Lex; W1 Medusa 12-XLR breakout ordered for testing.", src: "0922" },
+        { date: "2026-09-17", text: "Patent searches (Google Patents, Justia, USPTO) found nothing covering Catalyst's shielded Cat6 + XLR breakout system.", slack: "p1789671009172399" },
+        { date: "2026-09-09", text: "Parts and PCBs ordered for the first audio-over-Cat tests.", slack: "p1788984673400829" },
         { date: "2026-09-08", text: "V1 PCBs in hand, V2 W1-to-3×RJ45 built. PCB chassis connectors ordered: cheaper than soldered, same exterior look.", src: "0908" },
+        { date: "2026-08-25", text: "Reference products shared: Catalyst Cabling Systems and Whirlwind CATMASTER.", slack: "p1787680517495769" },
         { date: "2026-08-11", text: "Networked analog breakouts named a high-impact way to cut assembly and on-site labor.", src: "0811" }
       ]
     },
@@ -103,7 +117,7 @@ window.BLACKOPS = {
       status: "active",
       clearance: "SECRET",
       lead: "Ryan Lynette",
-      team: ["Ryan Lynette", "Ben Thompson", "Levi Connell", "Adam Hoekstra"],
+      team: ["Ryan Lynette", "Ben Thompson", "Levi Connell", "Adam Hoekstra", "Hal"],
       start: "2026-08-04",
       end: "2026-12-31",
       estimatedEnd: true,
@@ -112,21 +126,27 @@ window.BLACKOPS = {
       vision:
         "Product arrives on site sorted by area, labeled in pull order and ready to hang, so crews install instead of rummaging.",
       mission:
-        "Do the prep in the shop: palletize by area on receiving, re-inventory before shipping, pre-address and label lighting, build standard TV kits and converter boards in batches, and pre-make custom cables for upcoming jobs.",
+        "Do the prep in the shop: palletize by area on receiving, re-inventory before shipping, pre-address and label lighting, build standard TV kits in batches, and pre-make custom cables. Assembly takes on more: plug-and-play FOH racks with interface plates, whips out of the main racks, and branded accessory and manual packs for clients.",
       objectives: [
         { text: "Stage pallets by package: PA, video, lighting, FOH", done: true, owner: "Levi" },
         { text: "Pre-address, pre-clamp and pre-label lighting fixtures before shipping", done: true, owner: "Levi" },
         { text: "Area prints on every warehouse label template", done: false, owner: "Tyson" },
         { text: "Re-inventory and palletize [[Flatirons]] by area", done: false, owner: "Ryan & Ben T." },
         { text: "Batch pallets by area during receiving", done: false, owner: "Ben T." },
-        { text: "Finalize TV kit contents and a quarterly build of 100–150 packs", done: false, owner: "Adam & Ryan" },
+        { text: "TV mounting kit parts list defined", done: true, owner: "Ryan" },
+        { text: "Summit ID for the TV kit in the warehouse database, linked to its parts list", done: false, owner: "Ben T." },
+        { text: "Quarterly build of 100–150 TV kits from stock", done: false, owner: "Adam & Ryan" },
         { text: "Wall-mounted pegboard converter board sample", done: false, owner: "Levi" },
-        { text: "Monthly pre-make of custom cables for upcoming projects", done: false, owner: "Ryan" }
+        { text: "Monthly pre-make of custom cables for upcoming projects", done: false, owner: "Ryan" },
+        { text: "Plug-and-play FOH racks: field lines land on interface plates, looms pre-sorted to stations", done: false, owner: "Adam" },
+        { text: "Selective whips from main racks to nearby rooms, planned during CDs", done: false, owner: "Adam & Hal" },
+        { text: "Branded accessory and manual packs; accessories bagged, labeled, in a separate-colored bin", done: false, owner: "Adam" }
       ],
       outcomes: [
         { label: "Lighting install labor", value: "−1 day", detail: "Pre-addressed, clamped and labeled fixtures saved one person a full day on [[WWK]].", state: "met" },
         { label: "Pallets staged by area", value: "Pilot", detail: "[[Flatirons]] pulled this week, reorganized next week, shipped in a Conex by daily pull order.", state: "on" },
-        { label: "TV kit build cadence", value: "100–150 / qtr", detail: "Toggles, Velcro clips, patch and network cables, 2 ft 12G BNCs, branded box.", state: "pending" }
+        { label: "TV kit build cadence", value: "100–150 / qtr", detail: "4 zip toggles, 1/4\"-20 bolts and fender washers, 3 ft network, 2 ft SDI, 3 ft HDMI, Velcro mounts, cleaning wipe, branded box.", state: "pending" },
+        { label: "FOH rack dressing on site", value: "Zero", detail: "Racks leave the shop dressed; field lines plug into interface plates.", state: "pending" }
       ],
       phases: [
         { name: "Package staging", start: "2026-08-04", end: "2026-09-21" },
@@ -139,8 +159,10 @@ window.BLACKOPS = {
         { text: "Converter options (3G, 12G, none) multiplying TV kit SKUs", sev: "low" }
       ],
       intel: [
+        { date: "2026-09-24", text: "Adam, Ryan, Ben and Hal proposed what Assembly can take on: plug-and-play FOH racks, selective rack whips, accessory and manual packs, ladder tray. Tyson: “This all sounds fantastic.”", slack: "p1790279093011569" },
         { date: "2026-09-22", text: "[[Flatirons]] picked to pilot area-based re-inventory and palletization. Assembly label already prints area.", src: "0922" },
         { date: "2026-09-22", text: "TV kit contents defined; Rachel made Summit-branded stickers so kits ship as a finished product.", src: "0922" },
+        { date: "2026-09-15", text: "TV mounting kit spec posted. Kits built in the warehouse and pulled per project; Ben creating its Summit ID.", slack: "p1789494797214059" },
         { date: "2026-09-08", text: "Pre-labeled lighting saved a full day on [[WWK]]. Staging by package (PA / video / lighting / FOH) adopted as the interim step.", src: "0908" }
       ]
     },
@@ -168,6 +190,7 @@ window.BLACKOPS = {
         { text: "Add all foremen to Amazon Business", done: true, owner: "Tyson" },
         { text: "Switch rigging to pre-made 1/4\" wire-rope slings (2 ft / 3 ft)", done: true, owner: "Ben T." },
         { text: "Scope a narrow pre-wire trip for [[Evangel Temple]]", done: false, owner: "Ryan" },
+        { text: "Install ladder tray at the start of the wire-pull trip, sized from rack-count packages", done: false, owner: "Adam" },
         { text: "Pick a pilot for the 3–4 week prep model and set success metrics", done: false, owner: "Ryan" },
         { text: "End-to-end site-survey and verification checklist", done: false, owner: "Ryan & Ben B." },
         { text: "Assess AR / Matterport for digital layout", done: false, owner: "Ben B." }
@@ -188,6 +211,7 @@ window.BLACKOPS = {
         { text: "AR measurement accuracy unproven", sev: "low" }
       ],
       intel: [
+        { date: "2026-09-24", text: "Proposal: ladder tray goes in at the start of the wire-pull trip, with standard packages by rack count and engineer-drawn layouts.", slack: "p1790279093011569" },
         { date: "2026-09-22", text: "Flight Plan adopted as the source of truth for install scheduling. [[Evangel Temple]] lined up for a 2–3 person pre-wire trip.", src: "0922" },
         { date: "2026-09-08", text: "Pre-made wire-rope slings replace cut chain; aircraft cable and swaging being phased out. Supply accounts opened.", src: "0908" },
         { date: "2026-08-11", text: "Vertical alignment model proposed: 3–4 week prep window to finish installs in one week instead of two.", src: "0811" }
@@ -232,10 +256,12 @@ window.BLACKOPS = {
       ],
       risks: [
         { text: "Performance is slow; rollout held until it scales", sev: "high" },
+        { text: "Others are building browser system maps too (MxU teased one on 09/24)", sev: "med" },
         { text: "Messy source data at import", sev: "med" },
         { text: "Full missing-gear inference is complex; scoped to dead-end detection first", sev: "low" }
       ],
       intel: [
+        { date: "2026-09-24", text: "Tyson flagged MxU teasing browser-based system maps for churches: “Everyone is doing it.”", slack: "p1790274137085339" },
         { date: "2026-09-22", text: "Area comes from estimates; Topo will backfill room-level location later.", src: "0922" },
         { date: "2026-09-08", text: "Skeleton presented to engineers with strong feedback. Next: import wizard and data cleanliness.", src: "0908" },
         { date: "2026-08-11", text: "Sneak preview: schematics, rack elevations, patch labels and pull sheets in the browser.", src: "0811" }
@@ -286,6 +312,7 @@ window.BLACKOPS = {
       ],
       intel: [
         { date: "2026-09-22", text: "Area vs. location model confirmed. SEs can override area in a hidden estimate column.", src: "0922" },
+        { date: "2026-09-08", text: "Jacob shared the Lex 19-pin connector used for speaker wire as a reference for the cabling option sets.", slack: "p1788887964308529" },
         { date: "2026-09-08", text: "Speaker cabling standardization prioritized; NL4 jumpers to be stocked at a standard length.", src: "0908" },
         { date: "2026-08-11", text: "Contracts and change orders moved from PandaDoc into Apex. V2 pricing template started.", src: "0811" }
       ]
