@@ -14,6 +14,9 @@ team, risks and an intel log.
 - **Dossier**: click any operation for its full file. `←` / `→` move between files, `Esc` closes.
 - **Search**: `⌘K`, `Ctrl+K` or `/` searches codenames, project names, people and pillars.
 
+Operations can carry an optional `plan` (release plan): headline stats plus a done-vs-left
+hours bar per workstream. Topo uses it, fed from the Topo Release Plan.
+
 Deep links: `index.html#BO-003` opens that file directly.
 
 ## Updating content

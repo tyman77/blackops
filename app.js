@@ -24,6 +24,7 @@
   const srcLink = (i) => {
     if (i.src && MEET[i.src]) return ` <a class="src" href="${esc(MEET[i.src].url)}" target="_blank" rel="noopener">Meeting notes ↗</a>`;
     if (i.slack && CH) return ` <a class="src" href="${esc(`${CH.url}/${i.slack}`)}" target="_blank" rel="noopener">Slack ↗</a>`;
+    if (i.doc) return ` <span class="via">${esc(i.doc)}</span>`;
     return "";
   };
   const fmtMonth = (s) => { const d = date(s); return `${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`; };
@@ -422,7 +423,7 @@
     const el = $("#log");
     el.innerHTML = rows.map((r) => `
       <button class="log-row" type="button" data-op="${r.op.id}" data-cursor="Open file">
-        <span class="label num">${fmt(r.date)}</span><span class="c">${esc(r.op.codename)}</span><span>${redact(r.text)}${r.slack ? ' <span class="via">Slack</span>' : ""}</span><span class="arrow">→</span>
+        <span class="label num">${fmt(r.date)}</span><span class="c">${esc(r.op.codename)}</span><span>${redact(r.text)}${r.slack ? ' <span class="via">Slack</span>' : r.doc ? ` <span class="via">${esc(r.doc)}</span>` : ""}</span><span class="arrow">→</span>
       </button>`).join("");
     el.addEventListener("click", (e) => { const r = e.target.closest("[data-op]"); if (r) openFile(r.dataset.op, r); });
   })();
@@ -430,6 +431,31 @@
   // ---------- dossier ----------
   const dossier = $("#dossier");
   let current = null, returnFocus = null;
+
+  // release plan: headline stats plus done / left hours per workstream, all on one scale
+  function planHTML(plan) {
+    if (!plan) return "";
+    const max = Math.max(...plan.streams.map((w) => w.total));
+    const rows = plan.streams.map((w) => {
+      const done = w.total - w.left;
+      const pct = w.total ? Math.round((done / w.total) * 100) : 0;
+      const tip = `${w.name}: ${done} h done, ${w.left} h left of ${w.total} h (${pct}%). ${w.note}`;
+      return `<div class="ws" tabindex="0" title="${esc(tip)}" aria-label="${esc(tip)}">
+        <span class="ws-name">${esc(w.name)}<small>${esc(w.note)}</small></span>
+        <span class="ws-bar" style="width:${(w.total / max) * 100}%">
+          ${done ? `<i class="ws-done" style="flex:${done}"></i>` : ""}${w.left ? `<i class="ws-left" style="flex:${w.left}"></i>` : ""}
+        </span>
+        <span class="ws-val num">${w.left ? `${w.left} h left` : "Done"}<small>of ${w.total} h · ${pct}%</small></span>
+      </div>`;
+    }).join("");
+    return `<div class="d-sec plan"><h3>${esc(plan.title)}</h3>
+      <div class="plan-stats">${plan.stats.map((t) => `<div><strong class="num">${esc(t.v)}</strong><span class="label">${esc(t.l)}</span></div>`).join("")}</div>
+      <div class="plan-legend label"><span><i class="sw sw-done"></i>Done</span><span><i class="sw sw-left"></i>Left to v1</span><span>Bar length = planned hours</span></div>
+      <div class="ws-list">${rows}</div>
+      ${plan.parked ? `<p class="plan-note">${esc(plan.parked)}</p>` : ""}
+      <p class="plan-note label">Source: ${esc(plan.source)}</p>
+    </div>`;
+  }
 
   function openFile(id, from) {
     const op = OPS.find((o) => o.id === id);
@@ -476,6 +502,7 @@
         </div>
       </div>
       <div class="d-sec"><h3>Vision</h3><p class="vision">${redact(op.vision)}</p></div>
+      ${planHTML(op.plan)}
       <div class="d-cols">
         <div style="display:grid;gap:56px;align-content:start">
           <div class="d-sec"><h3>The mission</h3><p>${redact(op.mission)}</p></div>

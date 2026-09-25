@@ -14,7 +14,8 @@
  * impact / effort: 1–10 (drives the Radar view)
  * objectives: { text, done, owner?, due? }
  * outcomes:   { label, value, detail, state: "met" | "on" | "pending" | "behind" }
- * intel:      { date, text, src?, slack? }
+ * intel:      { date, text, src?, slack?, doc? }
+ * plan:       optional release plan { title, source, stats[], streams[{ name, left, total, note }], parked }
  *             src = key into MEETINGS; slack = message id (p + ts without the dot)
  */
 window.BLACKOPS = {
@@ -227,42 +228,79 @@ window.BLACKOPS = {
       lead: "Travis Leatherman",
       team: ["Travis Leatherman", "Cameron Fries", "Tyson Wiens"],
       start: "2026-08-04",
-      end: "2027-03-31",
+      end: "2027-02-26",
       estimatedEnd: true,
       impact: 10,
       effort: 9,
       vision:
         "One live design model per project that draws the schematics, prints the labels and talks to Apex both ways.",
       mission:
-        "A browser-based tool to replace Vectorworks and ConnectCAD: schematics without sheet limits, rack elevations, patch bay labels, pull sheets from scaled plans, and redlines and as-builts as a working model. It syncs with Apex both ways and backfills room locations to order sheets and labels.",
+        "A browser-based tool that replaces ConnectCAD and Vectorworks for ID schematics: schematics without sheet limits, rack elevations, plates and cut sheets, patch bay labels, pull sheets and schedules, and drawing-set revisions. A priced parts list from Apex becomes a drawing, and the link back to Apex catches what was actually ordered. v1 is the point Topo replaces ConnectCAD; field apps come after the browser is proven.",
       objectives: [
         { text: "Browser prototype previewed to the team", done: true, owner: "Travis" },
         { text: "Skeleton shown to engineers for feedback", done: true, owner: "Travis" },
-        { text: "Import wizard and clean data at import", done: false, owner: "Travis" },
-        { text: "Button behaviours and shortcuts from user testing", done: false, owner: "Travis" },
-        { text: "Apex packages drop standard blocks and layouts", done: false, owner: "Cameron & Travis" },
-        { text: "Signal-mismatch and dead-end detection", done: false, owner: "Cameron & Travis" },
-        { text: "Backfill room locations to order sheets and labels", done: false, owner: "Travis" }
+        { text: "Import 1,425 blocks from ConnectCAD", done: true, owner: "Travis" },
+        { text: "Patch bay labels derived from the wiring", done: true, owner: "Travis" },
+        { text: "Plans, DXF and drawing-set revisions (90%)", done: false, owner: "Travis" },
+        { text: "Plates and cut sheets (90%)", done: false, owner: "Travis" },
+        { text: "Parts list to drawing, with the Apex link and room matching (73%)", done: false, owner: "Travis" },
+        { text: "Two read-only fields on the Apex project lines endpoint for Topo", done: false, owner: "Tyson" },
+        { text: "Schedules: pull sheet, gear list, IP schedule, client-facing PDER (53%)", done: false, owner: "Travis" },
+        { text: "Schematic ready to issue (51%)", done: false, owner: "Travis" },
+        { text: "Platform: shared model store, live multi-user edits (41%)", done: false, owner: "Travis" },
+        { text: "Release: draw one real job end to end, train the engineers, installer works from a Topo set", done: false, owner: "Travis" },
+        { text: "iOS and Android field apps, after the browser is proven", done: false, owner: "Travis" }
       ],
       outcomes: [
-        { label: "Build progress", value: "~60%", detail: "From rough skeleton toward 100% through import and usability passes.", state: "on" },
-        { label: "Tools retired", value: "2", detail: "Vectorworks and ConnectCAD for ID schematics.", state: "pending" },
-        { label: "Apex ↔ Topo sync", value: "Two-way", detail: "Drag into a rack in Topo to populate Apex; change orders shown in the drawing.", state: "pending" }
+        { label: "Progress to v1", value: "60%", detail: "362 of 601 planned hours done; 441 of 527 items closed.", state: "on" },
+        { label: "Time left to v1", value: "240 h", detail: "About 6 working weeks, which puts v1 around early November.", state: "on" },
+        { label: "ConnectCAD blocks imported", value: "1,425", detail: "The existing symbol library carried into Topo.", state: "met" },
+        { label: "Tools retired", value: "ConnectCAD", detail: "v1 is defined as the point Topo replaces it for ID schematics.", state: "pending" }
       ],
+      plan: {
+        title: "Road to v1",
+        source: "Topo Release Plan, as of about 25 Sep 2026",
+        stats: [
+          { v: "240 h", l: "Left to v1" },
+          { v: "6.0 wk", l: "Working weeks" },
+          { v: "60%", l: "Done by hours" },
+          { v: "441/527", l: "Items done" },
+          { v: "38", l: "Ready for review · 117 h" },
+          { v: "11", l: "Blocked on someone" }
+        ],
+        streams: [
+          { name: "Platform spine", left: 66, total: 112, note: "Access, failure handling, hosting, live model store" },
+          { name: "Schematic", left: 34, total: 69, note: "What an issued sheet needs, plus polish" },
+          { name: "Parts and Apex", left: 30, total: 112, note: "Priced list to drawing, link back to Apex" },
+          { name: "Schedules", left: 30, total: 65, note: "Pull sheet, gear list, IP schedule, conduits, PDER" },
+          { name: "Blocks and library", left: 26, total: 45, note: "1,425 blocks imported from ConnectCAD" },
+          { name: "Release", left: 22, total: 23, note: "Real job, training, issue a set, installer on site" },
+          { name: "Racks", left: 18, total: 32, note: "Drawn, editable, grouped by room" },
+          { name: "Plans and DXF", left: 7, total: 69, note: "CD sets, linework, drawing-set revisions" },
+          { name: "Plates", left: 6, total: 58, note: "Includes the cut sheets" },
+          { name: "Patchbay labels", left: 0, total: 16, note: "Derived from the wiring" },
+          { name: "iOS / Android / Mac apps", left: 3, total: 3, note: "Scoping only for v1; builds come later" }
+        ],
+        parked: "54 h parked past v1 (8 h of it conditional): print at sheet size, title blocks and revision clouds, Google SSO and roles, client read-only access, offline field mode, security review."
+      },
       phases: [
-        { name: "Prototype", start: "2026-08-04", end: "2026-09-30" },
-        { name: "Import & UX", start: "2026-10-01", end: "2026-12-15" },
-        { name: "Apex sync", start: "2026-12-16", end: "2027-03-31" }
+        { name: "Prototype", start: "2026-08-04", end: "2026-09-07" },
+        { name: "Build to v1", start: "2026-09-08", end: "2026-11-06" },
+        { name: "Field apps", start: "2026-11-09", end: "2027-02-26" }
       ],
       risks: [
-        { text: "Performance is slow; rollout held until it scales", sev: "high" },
+        { text: "11 items blocked, most waiting on decisions, exports or reviews from Travis", sev: "high" },
+        { text: "38 items (117 h) finished and waiting for review", sev: "med" },
         { text: "Others are building browser system maps too (MxU teased one on 09/24)", sev: "med" },
-        { text: "Messy source data at import", sev: "med" },
-        { text: "Full missing-gear inference is complex; scoped to dead-end detection first", sev: "low" }
+        { text: "Routing a full model on a large job takes about 5 minutes; cold starts were most of the slowness", sev: "med" },
+        { text: "The release work (training, a real job, field use) is where tools fail; 22 of its 23 hours are still ahead", sev: "med" }
       ],
       intel: [
+        { date: "2026-09-25", text: "Release plan: 240 h left to v1, about 6 working weeks. 60% done by hours, 441 of 527 items closed, 11 blocked.", doc: "Topo Release Plan" },
         { date: "2026-09-24", text: "Tyson flagged MxU teasing browser-based system maps for churches: “Everyone is doing it.”", slack: "p1790274137085339" },
         { date: "2026-09-22", text: "Area comes from estimates; Topo will backfill room-level location later.", src: "0922" },
+        { date: "2026-09-21", text: "The Apex link shows what was actually ordered: four devices on [[Flatirons]] were drawn for gear nobody bought.", doc: "Topo Release Plan" },
+        { date: "2026-09-21", text: "Every box on all five junction box schedules now reaches a row (30 of 417 tags didn't before). The client-facing PDER page is built.", doc: "Topo Release Plan" },
         { date: "2026-09-08", text: "Skeleton presented to engineers with strong feedback. Next: import wizard and data cleanliness.", src: "0908" },
         { date: "2026-08-11", text: "Sneak preview: schematics, rack elevations, patch labels and pull sheets in the browser.", src: "0811" }
       ]
