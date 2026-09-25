@@ -173,76 +173,6 @@
     hero.addEventListener("pointerleave", () => { want = 0.5; if (!raf) raf = requestAnimationFrame(move); });
   })();
 
-  // ---------- the ascent ----------
-  (function ascent() {
-    const svg = $("#ascentSvg");
-    if (!svg) return;
-    const W = 1200, BASE = 410, TOP = 150, X0 = 90, X1 = 960;
-    // elevation rises steadily with progress (small wobble, never downhill), so height reads true
-    const elev = (t) => t + 0.05 * Math.sin(3 * Math.PI * t);
-    const rx = (t) => X0 + (X1 - X0) * t;
-    const ry = (t) => BASE - (BASE - TOP) * elev(t);
-    const atSummit = (op) => op.status === "live" || op.status === "complete";
-    const T = (op) => (atSummit(op) ? 1 : Math.min(0.97, progress(op)));
-
-    let ridge = `M0 460 L0 ${BASE + 18} L${X0 - 40} ${BASE + 6}`;
-    for (let i = 0; i <= 80; i++) { const t = i / 80; ridge += ` L${rx(t).toFixed(1)} ${ry(t).toFixed(1)}`; }
-    ridge += ` L1010 196 L1040 184 L1085 238 L1120 226 L1200 300 L1200 460 Z`;
-    // a far range behind for depth
-    let far = "M0 460 L0 330";
-    for (let i = 0; i <= 60; i++) { const x = (W * i) / 60; far += ` L${x.toFixed(1)} ${(300 - 150 * Math.pow(Math.sin(Math.PI * i / 60), 1.4) - 40 * fbm(i * 0.35, 2.2)).toFixed(1)}`; }
-    far += " L1200 460 Z";
-
-    let out = `<defs><linearGradient id="rockfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1c1c"/><stop offset="1" stop-color="#000000"/></linearGradient></defs>`;
-    out += `<path d="${far}" fill="#090909" stroke="rgba(255,255,255,.1)" stroke-width="1"/>`;
-    out += `<path d="${ridge}" fill="url(#rockfill)" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/>`;
-
-    // camps along the route
-    [[0, "Base camp"], [0.25, "Camp I"], [0.5, "Camp II"], [0.75, "Camp III"]].forEach(([t, name]) => {
-      out += `<line x1="${rx(t)}" y1="${ry(t)}" x2="${rx(t)}" y2="${ry(t) + 14}" stroke="#9C9C9C"/>`;
-      out += `<text x="${rx(t)}" y="${ry(t) + 30}" text-anchor="middle" font-size="11" letter-spacing="2" fill="#9C9C9C">${name.toUpperCase()}</text>`;
-      out += `<text x="${rx(t)}" y="${ry(t) + 45}" text-anchor="middle" font-size="10" letter-spacing="1.5" fill="#555555">${Math.round(t * 100)}%</text>`;
-    });
-    out += `<line x1="${rx(1)}" y1="${ry(1)}" x2="${rx(1)}" y2="${ry(1) - 44}" stroke="#FFFFFF" stroke-width="1.5"/>`;
-    out += `<path d="M${rx(1)} ${ry(1) - 44} L${rx(1) + 26} ${ry(1) - 37} L${rx(1)} ${ry(1) - 30} Z" fill="#FFFFFF"/>`;
-    out += `<text x="${rx(1)}" y="${ry(1) - 54}" text-anchor="middle" font-size="12" letter-spacing="3" fill="#FFFFFF">SUMMIT</text>`;
-
-    // one flag per operation. Higher on the ridge gets a higher label row, and labels run left of
-    // their pole, so no label ever crosses another flag's pole.
-    const ops = [...OPS].sort((a, b) => T(a) - T(b) || idx(a) - idx(b));
-    const rowY = (k) => 34 + (ops.length - 1 - k) * 26;
-    const seen = {};
-    ops.forEach((op, k) => {
-      const t = T(op), key = t.toFixed(3);
-      const dup = (seen[key] = (seen[key] || 0) + 1) - 1;
-      const summit = atSummit(op);
-      const px = summit ? rx(1) + 34 + dup * 16 : rx(t) + dup * 14;
-      const py = summit ? ry(1) + 2 : ry(t + dup * 0.012);
-      const ly = rowY(k);
-      const tag = summit ? STATUS[op.status].toUpperCase() : `${Math.round(t * 100)}%`;
-      const w = (op.codename.length + tag.length + 1) * 7.4 + 20;
-      const left = px - w > 8;
-      const fill = summit || op.status === "active" || op.status === "extraction" ? "#FFFFFF" : "#000000";
-      out += `<g class="climber" tabindex="0" role="button" data-op="${op.id}" data-cursor="Open file" aria-label="${esc(op.codename)}, ${esc(op.title)}: ${summit ? STATUS[op.status] : `${Math.round(t * 100)}% of objectives cleared`}">
-        <line class="pole" x1="${px}" y1="${py}" x2="${px}" y2="${ly - 9}" stroke="rgba(255,255,255,.45)" stroke-width="1"/>
-        <rect class="flagbox" x="${left ? px - 12 : px}" y="${ly - 9}" width="12" height="8" fill="#9C9C9C"/>
-        <text x="${left ? px - 18 : px + 18}" y="${ly}" text-anchor="${left ? "end" : "start"}" font-size="12" letter-spacing="1.2" fill="#FFFFFF">${esc(op.codename)} <tspan fill="#9C9C9C">${tag}</tspan></text>
-        <circle cx="${px}" cy="${py}" r="5.5" fill="${fill}" stroke="#FFFFFF" stroke-width="1.5"${op.status === "hold" ? ' stroke-dasharray="2 2"' : ""}/>
-      </g>`;
-    });
-    svg.innerHTML = out;
-    const go = (e) => { const g = e.target.closest("[data-op]"); if (g) openFile(g.dataset.op, g); };
-    svg.addEventListener("click", go);
-    svg.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e); } });
-
-    const climbing = OPS.filter((o) => !atSummit(o));
-    const avg = climbing.length ? climbing.reduce((a, o) => a + progress(o), 0) / climbing.length : 1;
-    $("#ascentStats").innerHTML = `
-      <div><strong class="num">${OPS.filter(atSummit).length}</strong><span class="label">On the summit</span></div>
-      <div><strong class="num">${climbing.length}</strong><span class="label">On the climb</span></div>
-      <div><strong class="num">${Math.round(avg * 100)}%</strong><span class="label">Average height</span></div>`;
-  })();
-
   // ---------- topographic texture ----------
   (function topo() {
     try {
@@ -682,7 +612,6 @@
   const pal = $("#palScrim"), input = $("#palInput"), list = $("#palList");
   let sel = 0, results = [];
   const SECTIONS = [
-    { kind: "Section", name: "The Ascent", sub: "Every operation on the climb to the summit", go: () => jump("#ascent") },
     { kind: "Section", name: "The Algorithm", sub: "Question, delete, simplify, accelerate, automate", go: () => jump("#algorithm") },
     { kind: "Section", name: "Operations", sub: "Horizontal index of every file", go: () => jump("#operations") },
     { kind: "Section", name: "Radar", sub: "Impact vs effort", go: () => jump("#radar") },
@@ -768,7 +697,7 @@
       if (en.isIntersecting) links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${en.target.id}`));
     });
   }, { rootMargin: "-45% 0px -50% 0px" });
-  ["ascent", "algorithm", "operations", "radar", "timeline", "intel"].forEach((id) => {
+  ["algorithm", "operations", "radar", "timeline", "intel"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) navObs.observe(el);
   });

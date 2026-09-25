@@ -160,20 +160,6 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 .scrub i { position: absolute; top: -1px; height: 3px; background: var(--white); left: 0; width: 20%; }
 .empty { padding: 80px 24px; text-align: center; color: var(--gray); border: 1px solid var(--line); }
 
-/* ---------- the ascent ---------- */
-.ascent-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--black); }
-.ascent-wrap svg { display: block; width: 100%; min-width: 760px; height: auto; }
-.ascent-wrap text { font-family: var(--mono); }
-.ascent-stats { display: flex; gap: 32px; }
-.ascent-stats div { display: grid; gap: 4px; }
-.ascent-stats strong { font: 400 40px/1 var(--serif); font-variant-numeric: tabular-nums; }
-.ascent-note { margin: 12px 0 0; }
-.climber { cursor: pointer; }
-.climber:hover .flagbox, .climber:focus .flagbox { fill: var(--white); }
-.climber:hover .pole, .climber:focus .pole { stroke: var(--white); }
-.climber:focus { outline: none; }
-.climber:focus-visible .flagbox { stroke: var(--white); stroke-width: 2; }
-
 /* topographic contour texture, drawn once at load */
 html footer, html .dossier { background-image: var(--topo, none); background-size: 1400px auto; background-position: center top; }
 
@@ -448,7 +434,6 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
 <header class="nav gutter">
   <div class="wordmark">Black Ops<sup id="unitShort">SPG</sup></div>
   <nav class="links" aria-label="Sections">
-    <a href="#ascent">Ascent</a>
     <a href="#algorithm">Algorithm</a>
     <a href="#operations">Operations</a>
     <a href="#radar">Radar</a>
@@ -473,15 +458,6 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
       <div class="kpis" id="kpis"></div>
     </div>
   </div>
-</section>
-
-<section class="sec gutter" id="ascent" aria-label="The Ascent">
-  <div class="sec-head">
-    <div><div class="label">The Ascent</div><h2>Route to the summit</h2></div>
-    <div class="ascent-stats" id="ascentStats"></div>
-  </div>
-  <div class="ascent-wrap"><svg id="ascentSvg" viewBox="0 0 1200 460" role="img" aria-label="Each operation placed on the climb by objectives cleared"></svg></div>
-  <p class="label ascent-note">Height on the ridge = share of objectives cleared · Live and complete operations stand on the summit · Select a flag to open its file</p>
 </section>
 
 <section class="sec gutter" id="algorithm" aria-label="The Algorithm">

@@ -18,8 +18,6 @@ on each objective.
   light glowing behind it that follows the pointer. A light background is removed automatically,
   so a black-on-white illustration sits on the black page; an image on black blends straight in.
   A tall image fills the right side of the hero; a wide one sits upper right. Swap the file to change the mountain.
-- **The Ascent**: every operation planted as a flag on one ridge, from Base Camp through
-  Camps I–III to the Summit, by share of objectives cleared. Live and complete operations stand on the summit.
 - **The Files**: horizontal reel of every operation. Filter by status, scroll sideways with the wheel or arrows.
 - **Radar**: impact vs effort, sorted into Quick strikes, Major campaigns, Side missions and Rethink.
 - **Timeline**: every phase across months with a "today" line.
