@@ -118,6 +118,7 @@
       canvas.width = w;
       canvas.height = h;
       canvas.style.aspectRatio = `${w} / ${h}`;
+      canvas.closest(".hero").classList.add(h > w ? "tall" : "wide");
       const g = canvas.getContext("2d");
       g.drawImage(img, 0, 0);
       let data;
@@ -156,7 +157,7 @@
     };
     img.src = src;
 
-    const hero = canvas.parentElement;
+    const hero = canvas.closest(".hero");
     let want = 0.5, at = 0.5, raf = 0;
     const move = () => {
       raf = 0;

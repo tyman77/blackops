@@ -62,9 +62,15 @@ kbd { font: 500 10px/1 var(--mono); border: 1px solid var(--line-2); border-radi
 .hero { background: var(--black); }
 .summit-light { --lx: 50%; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse 34% 46% at calc(28% + var(--lx) * .7) 34%, rgba(255,255,255,.2), rgba(255,255,255,.06) 45%, rgba(255,255,255,0) 72%); }
-#stage { position: absolute; right: 2vw; top: 72px; width: min(66vw, 1200px); height: auto; display: block;
-  -webkit-mask-image: linear-gradient(#000 72%, transparent 98%); mask-image: linear-gradient(#000 72%, transparent 98%); }
-#stage.dark { -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 45%, #000 55%, transparent 100%); mask-image: radial-gradient(ellipse 60% 70% at 50% 45%, #000 55%, transparent 100%); }
+/* the summit image: a tall image on black fills the right side; a wide cut-out sits upper right */
+.summit-frame { position: absolute; top: 0; bottom: 0; right: 3vw; pointer-events: none; }
+#stage { display: block; height: 100%; width: auto; }
+#stage.dark { mix-blend-mode: screen; -webkit-mask-image: radial-gradient(ellipse 70% 62% at 50% 44%, #000 60%, transparent 100%); mask-image: radial-gradient(ellipse 70% 62% at 50% 44%, #000 60%, transparent 100%); }
+.hero.wide .summit-frame { top: 72px; bottom: auto; right: 2vw; width: min(66vw, 1200px); }
+.hero.wide #stage { width: 100%; height: auto; -webkit-mask-image: linear-gradient(#000 72%, transparent 98%); mask-image: linear-gradient(#000 72%, transparent 98%); }
+.hero.tall .summit-light { background: radial-gradient(ellipse 30% 44% at calc(62% + var(--lx) * .3) 30%, rgba(255,255,255,.12), rgba(255,255,255,.03) 50%, rgba(255,255,255,0) 75%); }
+.hero.tall .hero-copy { grid-template-columns: minmax(0, 600px); }
+.hero.tall h1 { font-size: clamp(64px, 9.5vw, 160px); }
 .hero-copy { position: absolute; inset: auto 0 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); align-items: end; gap: 24px 48px; padding-bottom: 40px; pointer-events: none; }
 .hero h1 {
   margin: 0; font: 400 clamp(72px, 15vw, 240px)/.8 var(--serif); letter-spacing: -.02em; text-transform: uppercase;
@@ -390,7 +396,11 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
 @media (max-width: 900px) {
   .hero-copy { grid-template-columns: minmax(0, 1fr); }
   .hero { height: auto; margin-top: 0; padding-top: 12px; }
-  #stage { position: relative; right: auto; top: auto; width: calc(100% - 32px); max-width: 760px; margin: 0 auto; }
+  .summit-frame, .hero.wide .summit-frame { position: relative; top: auto; bottom: auto; right: auto; width: auto; margin: 0 16px; overflow: hidden; }
+  .hero.tall .summit-frame { height: min(118vw, 620px); }
+  .hero.tall #stage { width: 100%; height: auto; margin-top: -14%; }
+  .hero.tall h1 { font-size: clamp(56px, 16vw, 120px); }
+  .hero.tall .summit-light { background: radial-gradient(ellipse 55% 30% at 50% 20%, rgba(255,255,255,.1), rgba(255,255,255,0) 70%); }
   .hero-copy { position: relative; inset: auto; margin-top: -2%; }
   .summit-light { bottom: auto; height: 70vw; max-height: 560px; }
   .radar-layout, .d-cols { grid-template-columns: minmax(0, 1fr); gap: 40px; }
@@ -447,7 +457,7 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
 
 <section class="hero" aria-label="Command briefing">
   <div class="summit-light" id="summitLight" aria-hidden="true"></div>
-  <canvas id="stage" role="img" aria-label="The summit"></canvas>
+  <div class="summit-frame"><canvas id="stage" role="img" aria-label="The summit"></canvas></div>
   <div class="coord l">OBJ-00 / THE SUMMIT<br>LIGHT SOURCE: 1</div>
   <div class="coord r" id="asof"></div>
   <div class="hero-copy gutter">
