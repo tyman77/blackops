@@ -16,7 +16,8 @@
  * objectives: { text, done, owner?, due?, step }
  *             step = which Algorithm step the move serves (see ALGORITHM)
  * outcomes:   { label, value, detail, state: "met" | "on" | "pending" | "behind" }
- * intel:      { date, text, src?, slack?, doc? }
+ * intel:      { date, text, src?, slack?, ch?, doc? }  ch: "apex" links to APEX_CHANNEL
+ * feedback:   optional channel feedback { since, until, shipped[], asks[{ date, who, theme, kind, text, slack, answered? }] }
  * plan:       optional release plan { title, source, stats[], streams[{ name, left, total, note }], parked }
  *             src = key into MEETINGS; slack = message id (p + ts without the dot)
  */
@@ -45,6 +46,12 @@ window.BLACKOPS = {
     name: "#project_black_ops",
     url: "https://summitrocks.slack.com/archives/C0BTG1DMRRN",
     summary: "Day-to-day thread for the team: prototypes, kit specs, assembly proposals and things worth copying."
+  },
+
+  APEX_CHANNEL: {
+    name: "#apex",
+    url: "https://summitrocks.slack.com/archives/C0B64PRPUUD",
+    summary: "Where the whole company asks for Apex changes, reports bugs, and hears what just shipped."
   },
 
   MEETINGS: {
@@ -350,24 +357,134 @@ window.BLACKOPS = {
         { text: "Review ~12 pricing and efficiency items", done: false, owner: "Cameron & Tyson", step: "question" },
         { text: "Speaker cabling option sets (SC32/SoCo to KCON, NL8 to NL4) with cost comparison", done: false, owner: "Team", step: "simplify" },
         { text: "Auto-add TV accessories when a TV is added", done: false, owner: "Cameron", step: "automate" },
-        { text: "SA review: reviewed by default, explicit “wait” for exceptions", done: false, owner: "Tyson", step: "question" }
+        { text: "SA review: reviewed by default, explicit “wait” for exceptions", done: false, owner: "Tyson", step: "question" },
+        { text: "Per-unit serials, area and location on every order sheet line", done: true, owner: "Tyson", step: "simplify" },
+        { text: "Find in Projects: search any part across current and past projects", done: true, owner: "Tyson", step: "simplify" },
+        { text: "Slack DMs when you're mentioned in Apex", done: true, owner: "Tyson", step: "automate" },
+        { text: "Move the master parts list into Apex and retire the Google sheet", done: false, owner: "Tyson", step: "delete" },
+        { text: "Auto-generated reports for final project meetings", done: false, owner: "Tyson", step: "automate" }
       ],
       outcomes: [
         { label: "Estimating platform", value: "Live", detail: "Apex is rolled out and in daily use; refinements ship continuously.", state: "met" },
         { label: "Contract paperwork", value: "Off PandaDoc", detail: "Contracts and change orders fully in Apex; proposals stay in PandaDoc for now.", state: "met" },
         { label: "Black Ops template", value: "~50%", detail: "Lighting halfway, distributed still to go. Wrap targeted this week.", state: "on" },
-        { label: "Estimating speed", value: "2 clicks → 90%", detail: "Room packages make a multi-room estimate mostly automatic.", state: "pending" }
+        { label: "Estimating speed", value: "2 clicks → 90%", detail: "Room packages make a multi-room estimate mostly automatic.", state: "pending" },
+        { label: "Release cadence", value: "11 in 9 wks", detail: "Updates announced in #apex between 22 Jul and 24 Sep.", state: "met" }
       ],
+      feedback: {
+        since: "2026-07-22",
+        until: "2026-09-24",
+        shipped: [
+          { date: "2026-09-23", text: "Pick and order the cards on your home dashboard", slack: "p1790173585388799" },
+          { date: "2026-09-18", text: "Create pricing straight from a lead card", slack: "p1789741581312089" },
+          { date: "2026-09-16", text: "“Just Signed” celebration when a contract comes back", slack: "p1789581035322089" },
+          { date: "2026-09-14", text: "Slack DM when you're mentioned in Apex", slack: "p1789389624001999" },
+          { date: "2026-09-09", text: "Find in Projects: search a part across all projects", slack: "p1788961755842049" },
+          { date: "2026-09-02", text: "Order sheets: per-unit quantities, serials, area and location, partial deliveries", slack: "p1788380800147599" },
+          { date: "2026-09-02", text: "Vendor quotes stored with the project", slack: "p1788377233253059" },
+          { date: "2026-08-12", text: "Home dashboards for sales, SEs and PMs", slack: "p1786581340426409" },
+          { date: "2026-07-29", text: "Internal comments and client-portal comments split", slack: "p1785380082856639" },
+          { date: "2026-07-29", text: "Restock fees on items removed by change order", slack: "p1785370391730419" },
+          { date: "2026-07-28", text: "Paste text from an email and match items into an estimate", slack: "p1785266259636639" }
+        ],
+        // kind: feature | bug | access (permissions, accounts, imports, how-to)
+        asks: [
+          { date: "2026-09-24", who: "Matthew Kinney", theme: "Client portal", kind: "feature", text: "Viewer role on the client side for support", slack: "p1790288747127679" },
+          { date: "2026-09-24", who: "Chase McCall", theme: "Leads & reporting", kind: "feature", text: "One place to fix a lead's address; bad addresses are raising freight costs", slack: "p1790287266557059" },
+          { date: "2026-09-24", who: "John Clark", theme: "Contracts & change orders", kind: "bug", text: "Contract emails greet the church's name, not the client's (“Hi Plum,”)", slack: "p1790284288222749" },
+          { date: "2026-09-24", who: "Anthony Ray", theme: "Parts lists & pricing", kind: "feature", text: "Bring back the expanded travel view from the Google parts list", slack: "p1790283515532639" },
+          { date: "2026-09-23", who: "Nick Vidaurri", theme: "Access & admin", kind: "access", text: "Recover a deleted box-sale estimate", slack: "p1790194830067759" },
+          { date: "2026-09-23", who: "Seth Thiesen", theme: "Parts lists & pricing", kind: "bug", text: "Error re-importing an updated vendor quote", slack: "p1790193356706619" },
+          { date: "2026-09-23", who: "Michael Hopkins", theme: "Order sheets & warehouse", kind: "feature", text: "Filter Drawing QTY (including blanks) in the engineer view", slack: "p1790180560531089" },
+          { date: "2026-09-22", who: "David Forman", theme: "Contracts & change orders", kind: "feature", text: "Fill Exhibit D from the drawings' division of work", slack: "p1790091784891519" },
+          { date: "2026-09-22", who: "Daniel Cronk", theme: "Access & admin", kind: "access", text: "Can't edit serial and MAC fields", slack: "p1790090502308149" },
+          { date: "2026-09-21", who: "David Forman", theme: "Client portal", kind: "feature", text: "Shared password vault the church can see in the portal", slack: "p1790024753163339" },
+          { date: "2026-09-21", who: "Justin Hitch", theme: "Parts lists & pricing", kind: "feature", text: "Draft a parts list before a lead number exists, link it later", slack: "p1790014443809769" },
+          { date: "2026-09-21", who: "Jacob Cody", theme: "Leads & reporting", kind: "feature", text: "Merge duplicate client records", slack: "p1790012017435649" },
+          { date: "2026-09-21", who: "Derek Milton", theme: "Notifications & comments", kind: "feature", text: "Resolve comments but keep their history", slack: "p1790002891350269" },
+          { date: "2026-09-18", who: "Anthony Ray", theme: "Client portal", kind: "feature", text: "Export the timeline view as a PDF for clients and GCs", slack: "p1789756358549329" },
+          { date: "2026-09-18", who: "Jacob Cody", theme: "Leads & reporting", kind: "feature", text: "Custom views across all sales pipelines", slack: "p1789745227358399" },
+          { date: "2026-09-18", who: "Jacob Cody", theme: "Notifications & comments", kind: "feature", text: "Slack alert when a contract is approved and ready to send", slack: "p1789742870106649" },
+          { date: "2026-09-18", who: "Seth Thiesen", theme: "Parts lists & pricing", kind: "access", text: "How to start a new pricing doc", slack: "p1789740048784559", answered: "2026-09-18" },
+          { date: "2026-09-17", who: "Cameron Fries", theme: "Parts lists & pricing", kind: "feature", text: "Client View custom items at final price, markup hidden", slack: "p1789660615599399" },
+          { date: "2026-09-16", who: "Jacob Cody", theme: "Client portal", kind: "feature", text: "Let clients see archived projects", slack: "p1789592468484429" },
+          { date: "2026-09-16", who: "Cameron Fries", theme: "Performance & mobile", kind: "bug", text: "Chrome struggling to load projects and capacity", slack: "p1789575374038669" },
+          { date: "2026-09-15", who: "Cameron Fries", theme: "Contracts & change orders", kind: "feature", text: "Drag to reorder contract exhibits", slack: "p1789514320075049" },
+          { date: "2026-09-15", who: "Derek Milton", theme: "Parts lists & pricing", kind: "bug", text: "Reordered rows don't stick; bold part numbers disappear", slack: "p1789502640103679" },
+          { date: "2026-09-15", who: "Ryan Lynette", theme: "Access & admin", kind: "access", text: "Warehouse and install teams need to edit Pack Status", slack: "p1789501207961659" },
+          { date: "2026-09-14", who: "Cameron Fries", theme: "Parts lists & pricing", kind: "access", text: "Where to unlock a pricing doc", slack: "p1789425218667489" },
+          { date: "2026-09-11", who: "Cameron Fries", theme: "Parts lists & pricing", kind: "bug", text: "Toggling the base system shifts the total by about $1,000", slack: "p1789140902191469" },
+          { date: "2026-09-11", who: "Ben Thompson", theme: "Performance & mobile", kind: "bug", text: "QR code problem in mobile Apex", slack: "p1789135179569849" },
+          { date: "2026-09-11", who: "Jeremy McKee", theme: "Parts lists & pricing", kind: "bug", text: "Scope notes shared across add-alts", slack: "p1789133773077769" },
+          { date: "2026-09-09", who: "Matthew Kinney", theme: "Notifications & comments", kind: "feature", text: "Clicking a mention should open the item", slack: "p1788977360627599" },
+          { date: "2026-09-09", who: "Jeremy McKee", theme: "Notifications & comments", kind: "feature", text: "Send Apex mentions to Slack or email", slack: "p1788975292294959", answered: "2026-09-14" },
+          { date: "2026-09-08", who: "Matthew Kinney", theme: "Performance & mobile", kind: "bug", text: "iPhone keyboard hides the comment box", slack: "p1788903824545349" },
+          { date: "2026-09-08", who: "Marcelo Cacciagioni", theme: "Access & admin", kind: "access", text: "Needs estimating access", slack: "p1788895612366449" },
+          { date: "2026-09-04", who: "Cameron Fries", theme: "Client portal", kind: "feature", text: "Let a client mark items OFE on the master template", slack: "p1788555104906089" },
+          { date: "2026-09-03", who: "Ben Thompson", theme: "Order sheets & warehouse", kind: "feature", text: "“Left to pack” filter should include Staged and Palletize", slack: "p1788467298934789" },
+          { date: "2026-09-03", who: "Jeremy McKee", theme: "Parts lists & pricing", kind: "feature", text: "Search current and past projects for a part", slack: "p1788442840788249", answered: "2026-09-09" },
+          { date: "2026-09-03", who: "Derek Milton", theme: "Parts lists & pricing", kind: "feature", text: "Drag handle on the left for labels and spacers", slack: "p1788438670631899" },
+          { date: "2026-09-02", who: "Jeremy McKee", theme: "Parts lists & pricing", kind: "feature", text: "Bigger grand total at the top of Client View", slack: "p1788356381571889" },
+          { date: "2026-08-31", who: "Matt Strong", theme: "Order sheets & warehouse", kind: "bug", text: "Can't mark a quoted PDW Ready to Order", slack: "p1788219566080549" },
+          { date: "2026-08-31", who: "Justin Hitch", theme: "Access & admin", kind: "access", text: "Import a Google parts list", slack: "p1788191420442979" },
+          { date: "2026-08-31", who: "Ryan Lynette", theme: "Order sheets & warehouse", kind: "feature", text: "Capture serials and MACs at warehouse check-in", slack: "p1788186373634989", answered: "2026-09-02" },
+          { date: "2026-08-26", who: "Cameron Fries", theme: "Parts lists & pricing", kind: "feature", text: "Move several rows at once", slack: "p1787779944497269" },
+          { date: "2026-08-26", who: "Anthony Ray", theme: "Contracts & change orders", kind: "feature", text: "Change signers on a change order after it's sent", slack: "p1787775987645899" },
+          { date: "2026-08-26", who: "Preston", theme: "Order sheets & warehouse", kind: "bug", text: "Box-sale requests missing from the warehouse request tool", slack: "p1787770511041509" },
+          { date: "2026-08-25", who: "Daniel Cronk", theme: "Order sheets & warehouse", kind: "bug", text: "Parts-list items missing from the [[Flatirons]] order sheet", slack: "p1787697685128769" },
+          { date: "2026-08-25", who: "Derek Milton", theme: "Contracts & change orders", kind: "feature", text: "Format change orders on a locked project", slack: "p1787668855153789" },
+          { date: "2026-08-24", who: "Jeremy McKee", theme: "Notifications & comments", kind: "bug", text: "Dark-mode popups unreadable; mentions should open the item", slack: "p1787595625219359" },
+          { date: "2026-08-24", who: "Ryan Lynette", theme: "Access & admin", kind: "access", text: "Accounts for three new team members", slack: "p1787589620534889" },
+          { date: "2026-08-21", who: "Matthew Kinney", theme: "Order sheets & warehouse", kind: "feature", text: "Separate shipping address on order sheets", slack: "p1787346623348159" },
+          { date: "2026-08-21", who: "Travis Leatherman", theme: "Performance & mobile", kind: "bug", text: "Project 5109 proposal won't load in any browser", slack: "p1787344357102999" },
+          { date: "2026-08-20", who: "Justin Hitch", theme: "Access & admin", kind: "access", text: "Import a parts list into a blank project", slack: "p1787261359952759" },
+          { date: "2026-08-20", who: "Seth Thiesen", theme: "Contracts & change orders", kind: "access", text: "Why some change orders can be reviewed on their own", slack: "p1787261174841889" },
+          { date: "2026-08-19", who: "Ben Blevins", theme: "Contracts & change orders", kind: "feature", text: "PMs edit Exhibit C text and milestones per project", slack: "p1787172467376409" },
+          { date: "2026-08-19", who: "Chase Donald", theme: "Access & admin", kind: "access", text: "Can't build a change order (permissions)", slack: "p1787168027726659" },
+          { date: "2026-08-18", who: "Nick Vidaurri", theme: "Parts lists & pricing", kind: "bug", text: "Submitted project missing from Pricing Projects", slack: "p1787078212486519" },
+          { date: "2026-08-18", who: "Preston", theme: "Order sheets & warehouse", kind: "bug", text: "Error marking an inventory pull", slack: "p1787070149516579" },
+          { date: "2026-08-18", who: "Chase McCall", theme: "Leads & reporting", kind: "access", text: "Where the 30-day revenue tracker went", slack: "p1787067248987049" },
+          { date: "2026-08-18", who: "Matt Strong", theme: "Access & admin", kind: "access", text: "Re-sync item notes from the Google sheet", slack: "p1787059888654339" },
+          { date: "2026-08-17", who: "Justin Hitch", theme: "Access & admin", kind: "access", text: "Merge a duplicate parts list back into the original", slack: "p1787003689745549" },
+          { date: "2026-08-17", who: "Andrew Starke", theme: "Parts lists & pricing", kind: "bug", text: "Dealer cost pulled from the list-price record", slack: "p1787003494459439" },
+          { date: "2026-08-17", who: "Andrew Starke", theme: "Contracts & change orders", kind: "bug", text: "Subtotal pricing prints the same as detailed on a change order", slack: "p1786989296551819" },
+          { date: "2026-08-14", who: "Anthony Ray", theme: "Order sheets & warehouse", kind: "bug", text: "Email thread button missing on POs", slack: "p1786715454220449" },
+          { date: "2026-08-13", who: "Matthew Kinney", theme: "Access & admin", kind: "access", text: "Foreman permissions for on-site check-in", slack: "p1786654493631759" },
+          { date: "2026-08-12", who: "Ben Blevins", theme: "Access & admin", kind: "access", text: "PMs need to build and submit change orders", slack: "p1786559251234539" },
+          { date: "2026-08-12", who: "Anthony Ray", theme: "Contracts & change orders", kind: "feature", text: "Pull Exhibit C milestones from the contract", slack: "p1786554725347629" },
+          { date: "2026-08-12", who: "Anthony Ray", theme: "Access & admin", kind: "access", text: "PMs need to mark product delivered", slack: "p1786551343603619" },
+          { date: "2026-08-10", who: "Andrew Starke", theme: "Integrations", kind: "feature", text: "Build the Google Drive folders when pricing is created", slack: "p1786383062667389" },
+          { date: "2026-08-07", who: "Derek Milton", theme: "Parts lists & pricing", kind: "bug", text: "Importing a quote at quote price throws a price error", slack: "p1786123020271319" },
+          { date: "2026-08-07", who: "Ben Blevins", theme: "Access & admin", kind: "access", text: "Director role can't change order sheet statuses", slack: "p1786123018801469" },
+          { date: "2026-08-07", who: "Lex Bond", theme: "Order sheets & warehouse", kind: "bug", text: "Apex not suggesting stock we already have", slack: "p1786119428106319" },
+          { date: "2026-08-06", who: "Ryan Lynette", theme: "Leads & reporting", kind: "bug", text: "Project financials missing hours and travel costs", slack: "p1786025352836719" },
+          { date: "2026-08-04", who: "Derek Milton", theme: "Access & admin", kind: "access", text: "Import a parts list for project 5148", slack: "p1785876775886879" },
+          { date: "2026-08-04", who: "Ben Thompson", theme: "Performance & mobile", kind: "bug", text: "Mobile slow; some order sheets won't load", slack: "p1785864836256179" },
+          { date: "2026-07-31", who: "Seth Thiesen", theme: "Access & admin", kind: "access", text: "Unlock a project for client changes", slack: "p1785510833828389" },
+          { date: "2026-07-30", who: "Ben Thompson", theme: "Order sheets & warehouse", kind: "feature", text: "Assembly mark on package labels", slack: "p1785428892886239" },
+          { date: "2026-07-29", who: "Nick Vidaurri", theme: "Performance & mobile", kind: "bug", text: "Apex stuck in read-only for an hour", slack: "p1785356053580489" },
+          { date: "2026-07-28", who: "Ryan Lynette", theme: "Order sheets & warehouse", kind: "feature", text: "Undo and edit history on order sheet status", slack: "p1785265335145539" },
+          { date: "2026-07-22", who: "Ben Blevins", theme: "Access & admin", kind: "access", text: "Can't change order sheet statuses", slack: "p1784757656025489" },
+          { date: "2026-07-22", who: "Lex Bond", theme: "Integrations", kind: "feature", text: "Push database pricing into Sage", slack: "p1784748339328509" },
+          { date: "2026-07-22", who: "Cameron Fries", theme: "Order sheets & warehouse", kind: "feature", text: "Order sheet view in contracted parts-list order", slack: "p1784731268788889" }
+        ]
+      },
       phases: [
         { name: "Live · continuous refinement", start: "2026-08-04", end: "2027-02-26", ongoing: true }
       ],
       risks: [
+        { text: "Nearly every request in #apex is addressed to one person (Tyson); 78 asks in 9 weeks", sev: "high" },
+        { text: "Permissions, accounts and imports keep blocking people: 21 of the 78 asks", sev: "med" },
+        { text: "Lead records with wrong addresses and websites are raising freight costs", sev: "med" },
         { text: "SE details lost in free-text notes instead of structured fields", sev: "med" },
         { text: "Breakout choices change amplifier channel use and layouts", sev: "med" },
         { text: "Go-to 15\" box has no splay option in its tour version", sev: "low" }
       ],
       intel: [
+        { date: "2026-09-23", text: "Shipped: pick and order the cards on your home dashboard.", slack: "p1790173585388799", ch: "apex" },
         { date: "2026-09-22", text: "Area vs. location model confirmed. SEs can override area in a hidden estimate column.", src: "0922" },
+        { date: "2026-09-14", text: "Shipped: Slack DMs when you're mentioned, five days after Jeremy asked for it.", slack: "p1789389624001999", ch: "apex" },
+        { date: "2026-09-09", text: "Shipped: Find in Projects, search any part across every project. Answered Jeremy's 3 Sep request.", slack: "p1788961755842049", ch: "apex" },
         { date: "2026-09-08", text: "Jacob shared the Lex 19-pin connector used for speaker wire as a reference for the cabling option sets.", slack: "p1788887964308529" },
         { date: "2026-09-08", text: "Speaker cabling standardization prioritized; NL4 jumpers to be stocked at a standard length.", src: "0908" },
         { date: "2026-08-11", text: "Contracts and change orders moved from PandaDoc into Apex. V2 pricing template started.", src: "0811" }

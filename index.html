@@ -350,6 +350,13 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
 .ws-bar i:only-child { border-radius: 4px; }
 .ws-val { font: 500 13px/1.2 var(--mono); display: grid; gap: 2px; text-align: right; }
 .plan-note { margin: 0; color: var(--gray) !important; font-size: 13px; }
+.fb-feature { background: var(--white); }
+.fb-bug { background: #9C9C9C; }
+.fb-access { background: #4A4A4A; }
+.fb-row .ws-name { font-size: 14px; }
+.fb-cols { margin-top: 12px; }
+.who-inline { font: 400 11px/1 var(--mono); color: var(--gray); letter-spacing: .04em; margin-left: 4px; white-space: nowrap; }
+.fb-all { display: inline-block; margin-top: 12px; margin-left: 0; }
 
 /* redaction bars: hover, focus or tap to reveal */
 .redact { background: var(--white); color: transparent; padding: 0 3px; cursor: help; transition: background .25s, color .25s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
@@ -507,7 +514,7 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
 <section class="sec gutter" id="intel" aria-label="Intel log">
   <div class="sec-head">
     <div><div class="label">Intel log</div><h2>Latest field reports</h2></div>
-    <div class="label">From the syncs and #project_black_ops</div>
+    <div class="label">From the syncs, #project_black_ops and #apex</div>
   </div>
   <div class="briefings" id="briefings"></div>
   <div class="log" id="log"></div>

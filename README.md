@@ -25,6 +25,10 @@ on each objective.
 - **Dossier**: click any operation for its full file. `←` / `→` move between files, `Esc` closes.
 - **Search**: `⌘K`, `Ctrl+K` or `/` searches codenames, project names, people and pillars.
 
+Operations can carry an optional `feedback` block (APEX uses it, fed from the #apex Slack channel):
+releases shipped plus every ask from the team, tagged by theme and kind, rendered as a chart and
+changelog in the operation's file.
+
 Operations can carry an optional `plan` (release plan): headline stats plus a done-vs-left
 hours bar per workstream. Topo uses it, fed from the Topo Release Plan.
 

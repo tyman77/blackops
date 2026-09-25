@@ -28,7 +28,8 @@
   const CH = D.CHANNEL;
   const srcLink = (i) => {
     if (i.src && MEET[i.src]) return ` <a class="src" href="${esc(MEET[i.src].url)}" target="_blank" rel="noopener">Meeting notes ↗</a>`;
-    if (i.slack && CH) return ` <a class="src" href="${esc(`${CH.url}/${i.slack}`)}" target="_blank" rel="noopener">Slack ↗</a>`;
+    const chan = i.ch === "apex" ? D.APEX_CHANNEL : CH;
+    if (i.slack && chan) return ` <a class="src" href="${esc(`${chan.url}/${i.slack}`)}" target="_blank" rel="noopener">${i.ch === "apex" ? "#apex" : "Slack"} ↗</a>`;
     if (i.doc) return ` <span class="via">${esc(i.doc)}</span>`;
     return "";
   };
@@ -460,13 +461,14 @@
     const list = Object.values(MEET).sort((a, b) => date(b.date) - date(a.date));
     if (!el || !list.length) { if (el) el.hidden = true; return; }
     const latest = OPS.flatMap((op) => (op.intel || []).filter((i) => i.slack)).sort((a, b) => date(b.date) - date(a.date))[0];
-    const chan = CH ? `
-      <a class="brief-card chan" href="${esc(CH.url)}" target="_blank" rel="noopener" data-cursor="Open Slack">
-        <span class="label num">Slack${latest ? ` · last post ${fmt(latest.date)}` : ""}</span>
-        <b>${esc(CH.name)}</b>
-        <span class="brief-sum">${esc(CH.summary)}</span>
+    const chanCard = (c, label) => c ? `
+      <a class="brief-card chan" href="${esc(c.url)}" target="_blank" rel="noopener" data-cursor="Open Slack">
+        <span class="label num">${label}</span>
+        <b>${esc(c.name)}</b>
+        <span class="brief-sum">${esc(c.summary)}</span>
         <span class="open-cue">Open channel</span>
       </a>` : "";
+    const chan = chanCard(CH, `Slack${latest ? ` · last post ${fmt(latest.date)}` : ""}`) + chanCard(D.APEX_CHANNEL, "Slack · Apex requests and releases");
     el.innerHTML = chan + list.map((m) => `
       <a class="brief-card" href="${esc(m.url)}" target="_blank" rel="noopener" data-cursor="Open notes">
         <span class="label num">${fmt(m.date)} · ${m.attendees.length} attendees</span>
@@ -514,6 +516,48 @@
       <div class="ws-list">${rows}</div>
       ${plan.parked ? `<p class="plan-note">${esc(plan.parked)}</p>` : ""}
       <p class="plan-note label">Source: ${esc(plan.source)}</p>
+    </div>`;
+  }
+
+  // channel feedback: what shipped, what people asked for, by theme
+  const KIND = { feature: "Feature", bug: "Bug", access: "Access & setup" };
+  function feedbackHTML(fb) {
+    if (!fb) return "";
+    const ch = D.APEX_CHANNEL || CH;
+    const link = (ts) => `${esc(ch.url)}/${ts}`;
+    const asks = [...fb.asks].sort((a, b) => date(b.date) - date(a.date));
+    const themes = {};
+    asks.forEach((a) => { const t = (themes[a.theme] = themes[a.theme] || { name: a.theme, feature: 0, bug: 0, access: 0, n: 0 }); t[a.kind]++; t.n++; });
+    const rows = Object.values(themes).sort((a, b) => b.n - a.n);
+    const max = rows[0] ? rows[0].n : 1;
+    const count = (k) => asks.filter((a) => a.kind === k).length;
+    const answered = asks.filter((a) => a.answered).length;
+    const bars = rows.map((t) => {
+      const tip = `${t.name}: ${t.n} asks (${t.feature} feature, ${t.bug} bug, ${t.access} access & setup)`;
+      return `<div class="ws fb-row" tabindex="0" title="${esc(tip)}" aria-label="${esc(tip)}">
+        <span class="ws-name">${esc(t.name)}</span>
+        <span class="ws-bar" style="width:${(t.n / max) * 100}%">
+          ${["feature", "bug", "access"].filter((k) => t[k]).map((k) => `<i class="fb-${k}" style="flex:${t[k]}"></i>`).join("")}
+        </span>
+        <span class="ws-val num">${t.n}<small>${t.bug ? `${t.bug} bug${t.bug > 1 ? "s" : ""}` : "no bugs"}</small></span>
+      </div>`;
+    }).join("");
+    return `<div class="d-sec plan fb"><h3>Field feedback · ${esc(ch.name)}</h3>
+      <div class="plan-stats">
+        <div><strong class="num">${fb.shipped.length}</strong><span class="label">Releases announced</span></div>
+        <div><strong class="num">${asks.length}</strong><span class="label">Asks from the team</span></div>
+        <div><strong class="num">${count("feature")}</strong><span class="label">Feature requests</span></div>
+        <div><strong class="num">${count("bug")}</strong><span class="label">Bug reports</span></div>
+        <div><strong class="num">${count("access")}</strong><span class="label">Access & setup</span></div>
+        <div><strong class="num">${answered}</strong><span class="label">Answered by a release</span></div>
+      </div>
+      <div class="plan-legend label"><span><i class="sw fb-feature"></i>Feature</span><span><i class="sw fb-bug"></i>Bug</span><span><i class="sw fb-access"></i>Access & setup</span><span>${fmt(fb.since)} – ${fmt(fb.until)}</span></div>
+      <div class="ws-list">${bars}</div>
+      <div class="d-cols fb-cols">
+        <div class="d-sec"><h3>Shipped</h3><div class="feed">${fb.shipped.map((x) => `<div><time datetime="${x.date}">${fmt(x.date)}</time><span>${esc(x.text)} <a class="src" href="${link(x.slack)}" target="_blank" rel="noopener">#apex ↗</a></span></div>`).join("")}</div></div>
+        <div class="d-sec"><h3>Latest asks</h3><div class="feed">${asks.slice(0, 11).map((a) => `<div><time datetime="${a.date}">${fmt(a.date)}</time><span><span class="step-chip">${KIND[a.kind]}</span>${redact(a.text)} <span class="who-inline">${esc(a.who)}</span>${a.answered ? ` <span class="via">Shipped ${fmt(a.answered)}</span>` : ""} <a class="src" href="${link(a.slack)}" target="_blank" rel="noopener">↗</a></span></div>`).join("")}</div>
+          <a class="src fb-all" href="${esc(ch.url)}" target="_blank" rel="noopener">All ${asks.length} asks in ${esc(ch.name)} ↗</a></div>
+      </div>
     </div>`;
   }
 
@@ -576,7 +620,8 @@
           <div class="d-sec"><h3>Risks</h3><div>${(op.risks || []).length ? op.risks.map((r) => `<div class="risk"><span class="sev sev-${r.sev}">${r.sev === "med" ? "Medium" : r.sev}</span><span>${redact(r.text)}</span></div>`).join("") : '<p class="label">No open risks</p>'}</div></div>
           <div class="d-sec"><h3>Intel log</h3><div class="feed">${(op.intel || []).map((i) => `<div><time datetime="${i.date}">${fmt(i.date)}</time><span>${redact(i.text)}${srcLink(i)}</span></div>`).join("")}</div></div>
         </div>
-      </div>`;
+      </div>
+      ${feedbackHTML(op.feedback)}`;
 
     $("#cursor").classList.remove("big");
     if (!dossier.classList.contains("on")) {
@@ -625,7 +670,8 @@
     const ops = OPS.map((op) => ({
       kind: `${roman(idx(op))} · ${STATUS[op.status]}`, name: op.codename, sub: op.title,
       hay: [op.codename, op.title, op.pillar, op.lead, ...op.team, plain(op.vision), plain(op.mission), op.id,
-        ...(op.objectives || []).map((o) => `${plain(o.text)} ${o.owner || ""}`)].join(" ").toLowerCase(),
+        ...(op.objectives || []).map((o) => `${plain(o.text)} ${o.owner || ""}`),
+        ...((op.feedback && op.feedback.asks) || []).map((a) => `${plain(a.text)} ${a.who}`)].join(" ").toLowerCase(),
       go: () => openFile(op.id)
     }));
     const secs = SECTIONS.map((s) => ({ ...s, hay: s.name.toLowerCase() }));
