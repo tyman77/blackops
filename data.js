@@ -13,7 +13,8 @@
  * status:     "recon" | "active" | "extraction" | "live" | "complete" | "hold"
  *             live = rolled out and in use, still being refined (set ongoing: true)
  * impact / effort: 1–10 (drives the Radar view)
- * objectives: { text, done, owner?, due? }
+ * objectives: { text, done, owner?, due?, step }
+ *             step = which Algorithm step the move serves (see ALGORITHM)
  * outcomes:   { label, value, detail, state: "met" | "on" | "pending" | "behind" }
  * intel:      { date, text, src?, slack?, doc? }
  * plan:       optional release plan { title, source, stats[], streams[{ name, left, total, note }], parked }
@@ -21,7 +22,20 @@
  */
 window.BLACKOPS = {
   unit: "Summit Black Ops",
-  mandate: "Delete steps. Simplify steps. Then accelerate and automate, across sales, engineering, warehouse and install.",
+  mandate: "Black Ops runs on The Algorithm: question every requirement, delete, simplify, accelerate, then automate. In that order, across sales, engineering, warehouse and install.",
+
+  // The framework, from Jon McNeill's "The Algorithm" (the five steps Elon Musk ran at Tesla and SpaceX).
+  ALGORITHM: {
+    source: "The Algorithm: The Hypergrowth Formula That Transformed Tesla, Lululemon, General Motors and SpaceX, by Jon McNeill",
+    rule: "Run the steps in order. Automating a step that should have been deleted is the most expensive mistake.",
+    steps: [
+      { key: "question", name: "Question every requirement", line: "Every requirement has an owner and a reason. If nobody can defend it, it goes." },
+      { key: "delete", name: "Delete", line: "Remove the step, part or tool entirely. If you never add a few back, you didn't delete enough." },
+      { key: "simplify", name: "Simplify", line: "Standardize and optimize only what survived deletion." },
+      { key: "accelerate", name: "Accelerate", line: "Shorten the cycle: prep earlier, pilot sooner, finish on site faster." },
+      { key: "automate", name: "Automate", line: "Last, not first. Let software do what is now simple and proven." }
+    ]
+  },
   asOf: "2026-09-25",
 
   CHANNEL: {
@@ -74,16 +88,16 @@ window.BLACKOPS = {
       mission:
         "Replace poor-man snakes and field terminations with networked breakouts: Cat6 to stage plates, RJ45 to DB25/XLR at the rack, and custom CAT-to-multipin and CAT-to-XLR PCBs. The rack side becomes an enclosed, modular 1RU product that expands by adding units.",
       objectives: [
-        { text: "Define networked breakout architecture (RJ45 → DB25 → XLR, terminal-block RIO option)", done: true, owner: "Adam" },
-        { text: "V1 / V2 CAT-to-multipin and CAT-to-XLR PCB prototypes, incl. W1 to 3× RJ45", done: true, owner: "Cameron" },
-        { text: "Order parts and PCBs for the first audio-over-Cat tests", done: true, owner: "Travis" },
-        { text: "Patent check on Catalyst (Venueflex) and similar products: nothing found", done: true, owner: "Tyson & Adam" },
-        { text: "Test-fit PCB chassis connectors in plates and confirm rear mounting", done: true, owner: "Ben T." },
-        { text: "Run a 150–200 ft test and validate the W1 Medusa 12-XLR breakout", done: false, owner: "Adam" },
-        { text: "Research grounding, pin-1, EMI, solder and corrosion standards; write a test plan", done: false, owner: "Adam" },
-        { text: "Build vs. buy standard for RJ45/DB25/XLR breakout assemblies", done: false, owner: "Adam" },
-        { text: "Enclosed modular 1RU rack unit that looks like a finished product", done: false, owner: "Cameron" },
-        { text: "Pilot the swap from analog to shielded Cat6 on a signed project", done: false, owner: "Cameron" }
+        { text: "Define networked breakout architecture (RJ45 → DB25 → XLR, terminal-block RIO option)", done: true, owner: "Adam", step: "question" },
+        { text: "V1 / V2 CAT-to-multipin and CAT-to-XLR PCB prototypes, incl. W1 to 3× RJ45", done: true, owner: "Cameron", step: "delete" },
+        { text: "Order parts and PCBs for the first audio-over-Cat tests", done: true, owner: "Travis", step: "delete" },
+        { text: "Patent check on Catalyst (Venueflex) and similar products: nothing found", done: true, owner: "Tyson & Adam", step: "question" },
+        { text: "Test-fit PCB chassis connectors in plates and confirm rear mounting", done: true, owner: "Ben T.", step: "simplify" },
+        { text: "Run a 150–200 ft test and validate the W1 Medusa 12-XLR breakout", done: false, owner: "Adam", step: "simplify" },
+        { text: "Research grounding, pin-1, EMI, solder and corrosion standards; write a test plan", done: false, owner: "Adam", step: "question" },
+        { text: "Build vs. buy standard for RJ45/DB25/XLR breakout assemblies", done: false, owner: "Adam", step: "question" },
+        { text: "Enclosed modular 1RU rack unit that looks like a finished product", done: false, owner: "Cameron", step: "simplify" },
+        { text: "Pilot the swap from analog to shielded Cat6 on a signed project", done: false, owner: "Cameron", step: "accelerate" }
       ],
       outcomes: [
         { label: "Prototype hardware", value: "PCBs in hand", detail: "PCBs, back boxes and pre-made Phoenix-to-XLR test cables received or on order.", state: "met" },
@@ -130,19 +144,19 @@ window.BLACKOPS = {
       mission:
         "Do the prep in the shop: palletize by area on receiving, re-inventory before shipping, pre-address and label lighting, build standard TV kits in batches, and pre-make custom cables. Assembly takes on more: plug-and-play FOH racks with interface plates, whips out of the main racks, and branded accessory and manual packs for clients.",
       objectives: [
-        { text: "Stage pallets by package: PA, video, lighting, FOH", done: true, owner: "Levi" },
-        { text: "Pre-address, pre-clamp and pre-label lighting fixtures before shipping", done: true, owner: "Levi" },
-        { text: "Area prints on every warehouse label template", done: false, owner: "Tyson" },
-        { text: "Re-inventory and palletize [[Flatirons]] by area", done: false, owner: "Ryan & Ben T." },
-        { text: "Batch pallets by area during receiving", done: false, owner: "Ben T." },
-        { text: "TV mounting kit parts list defined", done: true, owner: "Ryan" },
-        { text: "Summit ID for the TV kit in the warehouse database, linked to its parts list", done: false, owner: "Ben T." },
-        { text: "Quarterly build of 100–150 TV kits from stock", done: false, owner: "Adam & Ryan" },
-        { text: "Wall-mounted pegboard converter board sample", done: false, owner: "Levi" },
-        { text: "Monthly pre-make of custom cables for upcoming projects", done: false, owner: "Ryan" },
-        { text: "Plug-and-play FOH racks: field lines land on interface plates, looms pre-sorted to stations", done: false, owner: "Adam" },
-        { text: "Selective whips from main racks to nearby rooms, planned during CDs", done: false, owner: "Adam & Hal" },
-        { text: "Branded accessory and manual packs; accessories bagged, labeled, in a separate-colored bin", done: false, owner: "Adam" }
+        { text: "Stage pallets by package: PA, video, lighting, FOH", done: true, owner: "Levi", step: "simplify" },
+        { text: "Pre-address, pre-clamp and pre-label lighting fixtures before shipping", done: true, owner: "Levi", step: "accelerate" },
+        { text: "Area prints on every warehouse label template", done: false, owner: "Tyson", step: "simplify" },
+        { text: "Re-inventory and palletize [[Flatirons]] by area", done: false, owner: "Ryan & Ben T.", step: "delete" },
+        { text: "Batch pallets by area during receiving", done: false, owner: "Ben T.", step: "simplify" },
+        { text: "TV mounting kit parts list defined", done: true, owner: "Ryan", step: "simplify" },
+        { text: "Summit ID for the TV kit in the warehouse database, linked to its parts list", done: false, owner: "Ben T.", step: "simplify" },
+        { text: "Quarterly build of 100–150 TV kits from stock", done: false, owner: "Adam & Ryan", step: "accelerate" },
+        { text: "Wall-mounted pegboard converter board sample", done: false, owner: "Levi", step: "simplify" },
+        { text: "Monthly pre-make of custom cables for upcoming projects", done: false, owner: "Ryan", step: "accelerate" },
+        { text: "Plug-and-play FOH racks: field lines land on interface plates, looms pre-sorted to stations", done: false, owner: "Adam", step: "delete" },
+        { text: "Selective whips from main racks to nearby rooms, planned during CDs", done: false, owner: "Adam & Hal", step: "accelerate" },
+        { text: "Branded accessory and manual packs; accessories bagged, labeled, in a separate-colored bin", done: false, owner: "Adam", step: "simplify" }
       ],
       outcomes: [
         { label: "Lighting install labor", value: "−1 day", detail: "Pre-addressed, clamped and labeled fixtures saved one person a full day on [[WWK]].", state: "met" },
@@ -187,15 +201,15 @@ window.BLACKOPS = {
       mission:
         "A 3–4 week prep window once a project hits go: foreman visits during assembly, pre-rigging, layout of TV, sight-line and camera locations, and pre-commissioning. Small scoped teams handle wire pulls, terminations or rigging ahead of the main trip. One live site-survey checklist follows the job from first sales contact to install.",
       objectives: [
-        { text: "Adopt Flight Plan as the single source for schedules, travel and flights", done: true, owner: "Ryan" },
-        { text: "Open ~10 nationwide electrical supply accounts for foremen", done: true, owner: "Ben T." },
-        { text: "Add all foremen to Amazon Business", done: true, owner: "Tyson" },
-        { text: "Switch rigging to pre-made 1/4\" wire-rope slings (2 ft / 3 ft)", done: true, owner: "Ben T." },
-        { text: "Scope a narrow pre-wire trip for [[Evangel Temple]]", done: false, owner: "Ryan" },
-        { text: "Install ladder tray at the start of the wire-pull trip, sized from rack-count packages", done: false, owner: "Adam" },
-        { text: "Pick a pilot for the 3–4 week prep model and set success metrics", done: false, owner: "Ryan" },
-        { text: "End-to-end site-survey and verification checklist", done: false, owner: "Ryan & Ben B." },
-        { text: "Assess AR / Matterport for digital layout", done: false, owner: "Ben B." }
+        { text: "Adopt Flight Plan as the single source for schedules, travel and flights", done: true, owner: "Ryan", step: "simplify" },
+        { text: "Open ~10 nationwide electrical supply accounts for foremen", done: true, owner: "Ben T.", step: "delete" },
+        { text: "Add all foremen to Amazon Business", done: true, owner: "Tyson", step: "simplify" },
+        { text: "Switch rigging to pre-made 1/4\" wire-rope slings (2 ft / 3 ft)", done: true, owner: "Ben T.", step: "delete" },
+        { text: "Scope a narrow pre-wire trip for [[Evangel Temple]]", done: false, owner: "Ryan", step: "accelerate" },
+        { text: "Install ladder tray at the start of the wire-pull trip, sized from rack-count packages", done: false, owner: "Adam", step: "simplify" },
+        { text: "Pick a pilot for the 3–4 week prep model and set success metrics", done: false, owner: "Ryan", step: "accelerate" },
+        { text: "End-to-end site-survey and verification checklist", done: false, owner: "Ryan & Ben B.", step: "simplify" },
+        { text: "Assess AR / Matterport for digital layout", done: false, owner: "Ben B.", step: "question" }
       ],
       outcomes: [
         { label: "Scheduling", value: "Flight Plan", detail: "One place for team schedules, travel days and flights. Called a big win on 09/22.", state: "met" },
@@ -238,19 +252,19 @@ window.BLACKOPS = {
       mission:
         "A browser-based tool that replaces ConnectCAD and Vectorworks for ID schematics: schematics without sheet limits, rack elevations, plates and cut sheets, patch bay labels, pull sheets and schedules, and drawing-set revisions. A priced parts list from Apex becomes a drawing, and the link back to Apex catches what was actually ordered. v1 is the point Topo replaces ConnectCAD; field apps come after the browser is proven.",
       objectives: [
-        { text: "Browser prototype previewed to the team", done: true, owner: "Travis" },
-        { text: "Skeleton shown to engineers for feedback", done: true, owner: "Travis" },
-        { text: "Import 1,425 blocks from ConnectCAD", done: true, owner: "Travis" },
-        { text: "Patch bay labels derived from the wiring", done: true, owner: "Travis" },
-        { text: "Plans, DXF and drawing-set revisions (90%)", done: false, owner: "Travis" },
-        { text: "Plates and cut sheets (90%)", done: false, owner: "Travis" },
-        { text: "Parts list to drawing, with the Apex link and room matching (73%)", done: false, owner: "Travis" },
-        { text: "Two read-only fields on the Apex project lines endpoint for Topo", done: false, owner: "Tyson" },
-        { text: "Schedules: pull sheet, gear list, IP schedule, client-facing PDER (53%)", done: false, owner: "Travis" },
-        { text: "Schematic ready to issue (51%)", done: false, owner: "Travis" },
-        { text: "Platform: shared model store, live multi-user edits (41%)", done: false, owner: "Travis" },
-        { text: "Release: draw one real job end to end, train the engineers, installer works from a Topo set", done: false, owner: "Travis" },
-        { text: "iOS and Android field apps, after the browser is proven", done: false, owner: "Travis" }
+        { text: "Browser prototype previewed to the team", done: true, owner: "Travis", step: "question" },
+        { text: "Skeleton shown to engineers for feedback", done: true, owner: "Travis", step: "question" },
+        { text: "Import 1,425 blocks from ConnectCAD", done: true, owner: "Travis", step: "delete" },
+        { text: "Patch bay labels derived from the wiring", done: true, owner: "Travis", step: "automate" },
+        { text: "Plans, DXF and drawing-set revisions (90%)", done: false, owner: "Travis", step: "simplify" },
+        { text: "Plates and cut sheets (90%)", done: false, owner: "Travis", step: "simplify" },
+        { text: "Parts list to drawing, with the Apex link and room matching (73%)", done: false, owner: "Travis", step: "automate" },
+        { text: "Two read-only fields on the Apex project lines endpoint for Topo", done: false, owner: "Tyson", step: "automate" },
+        { text: "Schedules: pull sheet, gear list, IP schedule, client-facing PDER (53%)", done: false, owner: "Travis", step: "automate" },
+        { text: "Schematic ready to issue (51%)", done: false, owner: "Travis", step: "simplify" },
+        { text: "Platform: shared model store, live multi-user edits (41%)", done: false, owner: "Travis", step: "accelerate" },
+        { text: "Release: draw one real job end to end, train the engineers, installer works from a Topo set", done: false, owner: "Travis", step: "accelerate" },
+        { text: "iOS and Android field apps, after the browser is proven", done: false, owner: "Travis", step: "accelerate" }
       ],
       outcomes: [
         { label: "Progress to v1", value: "60%", detail: "362 of 601 planned hours done; 441 of 527 items closed.", state: "on" },
@@ -325,15 +339,15 @@ window.BLACKOPS = {
       mission:
         "Apex is live and is how we estimate today. The work now is continuous refinement: standard packages (tour-grade, distributed, visionary) grouped by room, areas captured at estimate time, speaker cabling option sets for fast quotes, TV accessories that add themselves, and more of the paperwork moved out of PandaDoc.",
       objectives: [
-        { text: "Apex rolled out as the estimating platform", done: true, owner: "Tyson" },
-        { text: "Move contracts and change orders from PandaDoc into Apex", done: true, owner: "Tyson" },
-        { text: "Editable Area column in estimates, auto-filled from system name", done: true, owner: "Tyson" },
-        { text: "Black Ops template: lighting (about half done)", done: false, owner: "Cameron" },
-        { text: "Black Ops template: distributed", done: false, owner: "Cameron" },
-        { text: "Review ~12 pricing and efficiency items", done: false, owner: "Cameron & Tyson" },
-        { text: "Speaker cabling option sets (SC32/SoCo to KCON, NL8 to NL4) with cost comparison", done: false, owner: "Team" },
-        { text: "Auto-add TV accessories when a TV is added", done: false, owner: "Cameron" },
-        { text: "SA review: reviewed by default, explicit “wait” for exceptions", done: false, owner: "Tyson" }
+        { text: "Apex rolled out as the estimating platform", done: true, owner: "Tyson", step: "simplify" },
+        { text: "Move contracts and change orders from PandaDoc into Apex", done: true, owner: "Tyson", step: "delete" },
+        { text: "Editable Area column in estimates, auto-filled from system name", done: true, owner: "Tyson", step: "automate" },
+        { text: "Black Ops template: lighting (about half done)", done: false, owner: "Cameron", step: "simplify" },
+        { text: "Black Ops template: distributed", done: false, owner: "Cameron", step: "simplify" },
+        { text: "Review ~12 pricing and efficiency items", done: false, owner: "Cameron & Tyson", step: "question" },
+        { text: "Speaker cabling option sets (SC32/SoCo to KCON, NL8 to NL4) with cost comparison", done: false, owner: "Team", step: "simplify" },
+        { text: "Auto-add TV accessories when a TV is added", done: false, owner: "Cameron", step: "automate" },
+        { text: "SA review: reviewed by default, explicit “wait” for exceptions", done: false, owner: "Tyson", step: "question" }
       ],
       outcomes: [
         { label: "Estimating platform", value: "Live", detail: "Apex is rolled out and in daily use; refinements ship continuously.", state: "met" },
@@ -375,12 +389,12 @@ window.BLACKOPS = {
       mission:
         "Finish the move off Nutshell: lead management in Apex (done), email marketing rebuilt in Apex with Rachel, and AI meeting summaries landing as concise, consistent CRM notes. Proposals get a visual refresh built on the sales bible and StoryBrand.",
       objectives: [
-        { text: "Custom Apex CRM that mirrors Nutshell", done: true, owner: "Tyson" },
-        { text: "Lead management moved into Apex", done: true, owner: "Tyson" },
-        { text: "Email marketing build with Rachel", done: false, owner: "Tyson", due: "2026-09-24" },
-        { text: "Retire Nutshell", done: false, owner: "Tyson" },
-        { text: "Standard AI discovery and programming summaries in CRM notes", done: false, owner: "Jacob" },
-        { text: "Capture room and area names in programming-meeting prompts", done: false, owner: "Jacob" }
+        { text: "Custom Apex CRM that mirrors Nutshell", done: true, owner: "Tyson", step: "simplify" },
+        { text: "Lead management moved into Apex", done: true, owner: "Tyson", step: "delete" },
+        { text: "Email marketing build with Rachel", done: false, owner: "Tyson", due: "2026-09-24", step: "simplify" },
+        { text: "Retire Nutshell", done: false, owner: "Tyson", step: "delete" },
+        { text: "Standard AI discovery and programming summaries in CRM notes", done: false, owner: "Jacob", step: "automate" },
+        { text: "Capture room and area names in programming-meeting prompts", done: false, owner: "Jacob", step: "automate" }
       ],
       outcomes: [
         { label: "Tool savings", value: "$15K / yr", detail: "From deleting Nutshell and simplifying the tool set.", state: "on" },
@@ -420,12 +434,12 @@ window.BLACKOPS = {
       mission:
         "AI agents and automations across finance, admin and sales: nightly bill verification, AI-drafted first overdue-invoice emails from Sage, Ramp auto-approval for clean expenses, and assistants that book travel, schedule meetings, prep briefs and track commitments.",
       objectives: [
-        { text: "Nightly bill verification on amount and date", done: true, owner: "Tyson" },
-        { text: "AI drafts first overdue-invoice email from Sage, human sends", done: true, owner: "Tyson" },
-        { text: "Ramp auto-approves compliant expenses under $150", done: true, owner: "Tyson" },
-        { text: "Ramp down to memo and project as the only user inputs", done: false, owner: "Tyson" },
-        { text: "Roll out AI assistants to AM / PM / SE roles", done: false, owner: "Jacob" },
-        { text: "Enterprise Claude access for Adam", done: false, owner: "Tyson" }
+        { text: "Nightly bill verification on amount and date", done: true, owner: "Tyson", step: "automate" },
+        { text: "AI drafts first overdue-invoice email from Sage, human sends", done: true, owner: "Tyson", step: "automate" },
+        { text: "Ramp auto-approves compliant expenses under $150", done: true, owner: "Tyson", step: "automate" },
+        { text: "Ramp down to memo and project as the only user inputs", done: false, owner: "Tyson", step: "delete" },
+        { text: "Roll out AI assistants to AM / PM / SE roles", done: false, owner: "Jacob", step: "automate" },
+        { text: "Enterprise Claude access for Adam", done: false, owner: "Tyson", step: "accelerate" }
       ],
       outcomes: [
         { label: "AR outreach time", value: "−4 h / wk", detail: "First overdue-invoice drafts built automatically; replaces Carrie's manual work.", state: "met" },

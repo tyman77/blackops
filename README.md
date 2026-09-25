@@ -4,6 +4,14 @@ Internal command center for the team's special projects. Each initiative is an
 "operation" with a vision, mission, objectives, measurable outcomes, phases,
 team, risks and an intel log.
 
+## Framework
+
+Black Ops runs on **The Algorithm** from Jon McNeill's *The Algorithm: The Hypergrowth Formula
+That Transformed Tesla, Lululemon, General Motors and SpaceX*: question every requirement,
+delete, simplify, accelerate, automate, in that order. Every objective in `data.js` carries a
+`step`, which drives the Algorithm section, the five-step strip on each card, and the step tag
+on each objective.
+
 ## Views
 
 - **Hero**: a single spotlit 3D object (Three.js). Drag to rotate; the light follows the pointer.

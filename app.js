@@ -21,6 +21,10 @@
   const redact = (t) => esc(t).replace(/\[\[(.+?)\]\]/g, '<span class="redact" tabindex="0" title="Classified. Hover to reveal">$1</span>');
   const plain = (t) => String(t).replace(/\[\[(.+?)\]\]/g, "$1");
   const MEET = D.MEETINGS || {};
+  const ALGO = D.ALGORITHM || { steps: [] };
+  const STEP = Object.fromEntries(ALGO.steps.map((st, n) => [st.key, { ...st, n: n + 1 }]));
+  const SHORT = { question: "Question", delete: "Delete", simplify: "Simplify", accelerate: "Accelerate", automate: "Automate" };
+  const stepChip = (k) => (STEP[k] ? `<span class="step-chip">${String(STEP[k].n).padStart(2, "0")} ${SHORT[k] || STEP[k].name}</span>` : "");
   const CH = D.CHANNEL;
   const srcLink = (i) => {
     if (i.src && MEET[i.src]) return ` <a class="src" href="${esc(MEET[i.src].url)}" target="_blank" rel="noopener">Meeting notes ↗</a>`;
@@ -189,6 +193,42 @@
     if (!reduced) requestAnimationFrame(loop);
   })();
 
+  // ---------- the algorithm ----------
+  (function algorithm() {
+    const el = $("#algo");
+    if (!el || !ALGO.steps.length) { const sec = $("#algorithm"); if (sec) sec.hidden = true; return; }
+    $("#algoRule").textContent = ALGO.rule || "";
+    $("#algoSrc").textContent = ALGO.source ? `Framework: ${ALGO.source}` : "";
+    const moves = OPS.flatMap((op) => (op.objectives || []).map((o) => ({ op, ...o })));
+    el.innerHTML = ALGO.steps.map((st, n) => {
+      const list = moves.filter((m) => m.step === st.key);
+      const done = list.filter((m) => m.done).length;
+      // open moves first, so the column shows what is left to do at this step
+      const show = [...list.filter((m) => !m.done), ...list.filter((m) => m.done)];
+      const top = show.slice(0, 4);
+      return `<div class="step">
+        <div class="step-no"><span>${String(n + 1).padStart(2, "0")}</span>${n < ALGO.steps.length - 1 ? '<span class="arrow" aria-hidden="true">→</span>' : ""}</div>
+        <h3>${esc(st.name)}</h3>
+        <p>${esc(st.line)}</p>
+        <div class="step-count"><strong>${done}</strong><span>of ${list.length} moves<br>done</span></div>
+        <div class="step-bar" aria-hidden="true">${list.map((m, i) => `<i class="${i < done ? "on" : ""}"></i>`).join("")}</div>
+        <ul>${top.map((m) => `<li class="${m.done ? "done" : ""}"><button type="button" data-op="${m.op.id}" data-cursor="Open file"><b>${esc(m.op.codename)}</b><span>${redact(m.text)}</span></button></li>`).join("")}</ul>
+        ${show.length > top.length ? `<span class="more">+${show.length - top.length} more in the files</span>` : ""}
+      </div>`;
+    }).join("");
+    el.addEventListener("click", (e) => { const b = e.target.closest("[data-op]"); if (b) openFile(b.dataset.op, b); });
+  })();
+
+  function algoStrip(op) {
+    if (!ALGO.steps.length) return "";
+    return `<div class="algo-strip" aria-label="Algorithm steps covered">${ALGO.steps.map((st) => {
+      const list = (op.objectives || []).filter((o) => o.step === st.key);
+      const cls = !list.length ? "" : list.every((o) => o.done) ? "done" : "open";
+      const d = list.filter((o) => o.done).length;
+      return `<span class="${cls}" title="${esc(st.name)}: ${d} of ${list.length} done">${SHORT[st.key] || st.key}</span>`;
+    }).join("")}</div>`;
+  }
+
   // ---------- operations reel ----------
   const reel = $("#reel");
   let filter = "all";
@@ -233,6 +273,7 @@
             <div class="prog-row"><span class="label">Objectives ${objs.filter((o) => o.done).length}/${objs.length}</span><span class="label num">${Math.round(p * 100)}%</span></div>
             <div class="ticks" aria-hidden="true">${ticks(p)}</div>
           </div>
+          ${algoStrip(op)}
           <div class="op-meta"><span class="label">Lead <b>${esc(op.lead)}</b> · ${esc(op.pillar)}</span><span class="open-cue">File ${esc(op.id)}</span></div>
         </div>
       </button>`;
@@ -513,7 +554,7 @@
       <div class="d-cols">
         <div style="display:grid;gap:56px;align-content:start">
           <div class="d-sec"><h3>The mission</h3><p>${redact(op.mission)}</p></div>
-          <div class="d-sec"><h3>Objectives</h3><ul class="checks">${(op.objectives || []).map((o) => `<li class="${o.done ? "done" : ""}"><span class="box" aria-hidden="true"></span><span>${redact(o.text)}</span>${o.owner || o.due ? `<span class="who">${esc(o.owner || "")}${o.due ? ` · due ${fmt(o.due)}` : ""}</span>` : ""}</li>`).join("")}</ul></div>
+          <div class="d-sec"><h3>Objectives</h3><ul class="checks">${(op.objectives || []).map((o) => `<li class="${o.done ? "done" : ""}"><span class="box" aria-hidden="true"></span><span>${stepChip(o.step)}${redact(o.text)}</span>${o.owner || o.due ? `<span class="who">${esc(o.owner || "")}${o.due ? ` · due ${fmt(o.due)}` : ""}</span>` : ""}</li>`).join("")}</ul></div>
           <div class="d-sec"><h3>Phases</h3><div class="phases">${phases}</div></div>
           <div class="d-sec"><h3>Team</h3><div class="roster">${op.team.map((n) => `<span class="person ${n === op.lead ? "lead" : ""}"><span class="av">${initials(n)}</span>${esc(n)}${n === op.lead ? " <em>Lead</em>" : ""}</span>`).join("")}</div></div>
         </div>
@@ -558,6 +599,7 @@
   const pal = $("#palScrim"), input = $("#palInput"), list = $("#palList");
   let sel = 0, results = [];
   const SECTIONS = [
+    { kind: "Section", name: "The Algorithm", sub: "Question, delete, simplify, accelerate, automate", go: () => jump("#algorithm") },
     { kind: "Section", name: "Operations", sub: "Horizontal index of every file", go: () => jump("#operations") },
     { kind: "Section", name: "Radar", sub: "Impact vs effort", go: () => jump("#radar") },
     { kind: "Section", name: "Timeline", sub: "Phases and today", go: () => jump("#timeline") },
@@ -642,7 +684,7 @@
       if (en.isIntersecting) links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${en.target.id}`));
     });
   }, { rootMargin: "-45% 0px -50% 0px" });
-  ["operations", "radar", "timeline", "intel"].forEach((id) => {
+  ["algorithm", "operations", "radar", "timeline", "intel"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) navObs.observe(el);
   });
