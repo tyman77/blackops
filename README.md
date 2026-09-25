@@ -25,6 +25,9 @@ on each objective.
 - **Dossier**: click any operation for its full file. `←` / `→` move between files, `Esc` closes.
 - **Search**: `⌘K`, `Ctrl+K` or `/` searches codenames, project names, people and pillars.
 
+Each operation can state its goals up front: `vision`, an optional `shift` ({ from, to }) and
+`targets` (headline numbers). They lead the operation's file and the targets show on its card.
+
 Operations can carry an optional `feedback` block (APEX uses it, fed from the #apex Slack channel):
 releases shipped plus every ask from the team, tagged by theme and kind, rendered as a chart and
 changelog in the operation's file.

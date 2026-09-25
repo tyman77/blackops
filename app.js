@@ -281,6 +281,7 @@
           <h3 class="op-name" data-scramble>${esc(op.codename)}</h3>
           <p class="op-title">${esc(op.title)}</p>
           <p class="op-vision">${esc(op.vision)}</p>
+          ${(op.targets || []).length ? `<div class="op-targets">${op.targets.slice(0, 2).map((t) => `<div><strong>${esc(t.value)}</strong><span>${esc(t.label)}</span></div>`).join("")}</div>` : ""}
         </div>
         <div class="op-foot">
           <div class="prog">
@@ -606,7 +607,10 @@
           <div class="fact"><span class="label">Objectives</span><b class="num">${Math.round(p * 100)}% cleared</b></div>
         </div>
       </div>
-      <div class="d-sec"><h3>Vision</h3><p class="vision">${redact(op.vision)}</p></div>
+      <div class="d-sec vt"><h3>${op.targets ? "Vision & targets" : "Vision"}</h3><p class="vision">${redact(op.vision)}</p>
+        ${op.shift ? `<div class="shift"><div><span class="label">From</span><p>${redact(op.shift.from)}</p></div><span class="shift-arrow" aria-hidden="true">→</span><div><span class="label">To</span><p>${redact(op.shift.to)}</p></div></div>` : ""}
+        ${(op.targets || []).length ? `<div class="targets">${op.targets.map((t) => `<div class="target"><strong>${esc(t.value)}</strong><b>${esc(t.label)}</b>${t.detail ? `<span>${redact(t.detail)}</span>` : ""}</div>`).join("")}</div>` : ""}
+      </div>
       ${planHTML(op.plan)}
       <div class="d-cols">
         <div style="display:grid;gap:56px;align-content:start">

@@ -16,6 +16,8 @@
  * objectives: { text, done, owner?, due?, step }
  *             step = which Algorithm step the move serves (see ALGORITHM)
  * outcomes:   { label, value, detail, state: "met" | "on" | "pending" | "behind" }
+ * shift:      optional { from, to }: the change the operation makes, shown with the vision
+ * targets:    optional headline goals [{ value, label, detail? }], shown on the card and in the file
  * intel:      { date, text, src?, slack?, ch?, doc? }  ch: "apex" links to APEX_CHANNEL
  * feedback:   optional channel feedback { since, until, shipped[], asks[{ date, who, theme, kind, text, slack, answered? }] }
  * plan:       optional release plan { title, source, stats[], streams[{ name, left, total, note }], parked }
@@ -94,7 +96,15 @@ window.BLACKOPS = {
       impact: 9,
       effort: 8,
       vision:
-        "Analog audio rides on shielded Cat6 with pre-made breakouts, so nobody solders or skins a snake on site again.",
+        "Every connection that can be made in the shop is made in the shop: no soldering on the job site, one standard set of cable types, and project infrastructure installed in half the time.",
+      shift: {
+        from: "Soldering, snake-skinning and terminating on site, with a different cable plan on every job",
+        to: "Standard cable types and pre-made assemblies built in the office; on site the crew pulls, lands and tests"
+      },
+      targets: [
+        { value: "0", label: "soldering on the job site" },
+        { value: "50%", label: "less time to install infrastructure, pull wire and terminate", detail: "Measured across the whole infrastructure scope, not just audio." }
+      ],
       mission:
         "Replace poor-man snakes and field terminations with networked breakouts: Cat6 to stage plates, RJ45 to DB25/XLR at the rack, and custom CAT-to-multipin and CAT-to-XLR PCBs. The rack side becomes an enclosed, modular 1RU product that expands by adding units.",
       objectives: [
@@ -107,12 +117,15 @@ window.BLACKOPS = {
         { text: "Research grounding, pin-1, EMI, solder and corrosion standards; write a test plan", done: false, owner: "Adam", step: "question" },
         { text: "Build vs. buy standard for RJ45/DB25/XLR breakout assemblies", done: false, owner: "Adam", step: "question" },
         { text: "Enclosed modular 1RU rack unit that looks like a finished product", done: false, owner: "Cameron", step: "simplify" },
-        { text: "Pilot the swap from analog to shielded Cat6 on a signed project", done: false, owner: "Cameron", step: "accelerate" }
+        { text: "Pilot the swap from analog to shielded Cat6 on a signed project", done: false, owner: "Cameron", step: "accelerate" },
+        { text: "Standard cable types for every project, so assemblies can be built ahead in the office", done: false, owner: "Team", step: "simplify" },
+        { text: "Baseline infrastructure, wire-pull and termination hours on a current job", done: false, owner: "Team", step: "question" }
       ],
       outcomes: [
         { label: "Prototype hardware", value: "PCBs in hand", detail: "PCBs, back boxes and pre-made Phoenix-to-XLR test cables received or on order.", state: "met" },
         { label: "Audio quality over distance", value: "150–200 ft", detail: "Target run length for the first listening and interference test.", state: "pending" },
         { label: "On-site terminations", value: "Zero solder", detail: "Pre-made harnesses and chassis connectors replace field soldering.", state: "pending" },
+        { label: "Infrastructure install time", value: "−50%", detail: "Target for infrastructure, wire pull and termination together.", state: "pending" },
         { label: "Rack expandability", value: "+16 / +64", detail: "Add inputs by adding another 1RU unit.", state: "pending" }
       ],
       phases: [
@@ -208,6 +221,13 @@ window.BLACKOPS = {
       effort: 6,
       vision:
         "When the crew arrives, points are rigged, locations are laid out and every decision is already made.",
+      shift: {
+        from: "Crews arrive and spend the first days measuring, deciding and waiting on the site",
+        to: "Points rigged, locations laid out and product sorted before the crew shows up"
+      },
+      targets: [
+        { value: "2 → 1 wk", label: "on-site install time", detail: "The prep-window pilot's goal, from the 11 Aug sync." }
+      ],
       mission:
         "A 3–4 week prep window once a project hits go: foreman visits during assembly, pre-rigging, layout of TV, sight-line and camera locations, and pre-commissioning. Small scoped teams handle wire pulls, terminations or rigging ahead of the main trip. One live site-survey checklist follows the job from first sales contact to install.",
       objectives: [
@@ -258,7 +278,15 @@ window.BLACKOPS = {
       impact: 10,
       effort: 9,
       vision:
-        "One live design model per project that draws the schematics, prints the labels and talks to Apex both ways.",
+        "Stop making drawings. Build a living technical model that the team and our clients update and use as the project's source of truth, not a one-time PDF.",
+      shift: {
+        from: "Installation drawings built by hand, issued once as a PDF, out of date by the end of install",
+        to: "A living technical model, started from the parts list, that team members and clients keep current for the life of the system"
+      },
+      targets: [
+        { value: "50%", label: "less time to build installation drawings" },
+        { value: "80%", label: "complete before an engineer starts", detail: "Drawings generate from the Apex parts list, so engineering starts most of the way done." }
+      ],
       mission:
         "A browser-based tool that replaces ConnectCAD and Vectorworks for ID schematics: schematics without sheet limits, rack elevations, plates and cut sheets, patch bay labels, pull sheets and schedules, and drawing-set revisions. A priced parts list from Apex becomes a drawing, and the link back to Apex catches what was actually ordered. v1 is the point Topo replaces ConnectCAD; field apps come after the browser is proven.",
       objectives: [
@@ -274,9 +302,14 @@ window.BLACKOPS = {
         { text: "Schematic ready to issue (51%)", done: false, owner: "Travis", step: "simplify" },
         { text: "Platform: shared model store, live multi-user edits (41%)", done: false, owner: "Travis", step: "accelerate" },
         { text: "Release: draw one real job end to end, train the engineers, installer works from a Topo set", done: false, owner: "Travis", step: "accelerate" },
-        { text: "iOS and Android field apps, after the browser is proven", done: false, owner: "Travis", step: "accelerate" }
+        { text: "iOS and Android field apps, after the browser is proven", done: false, owner: "Travis", step: "accelerate" },
+        { text: "Parts list generates drawings about 80% complete", done: false, owner: "Travis", step: "automate" },
+        { text: "Measure drawing hours on a real job, before and after Topo", done: false, owner: "Travis", step: "question" },
+        { text: "Clients open and update the live model instead of receiving a PDF", done: false, owner: "Travis", step: "delete" }
       ],
       outcomes: [
+        { label: "Drawing time", value: "−50%", detail: "Target: half the hours to build a set of installation drawings.", state: "pending" },
+        { label: "Starting point", value: "80%", detail: "Target: drawings about 80% done the moment the parts list lands.", state: "pending" },
         { label: "Progress to v1", value: "60%", detail: "362 of 601 planned hours done; 441 of 527 items closed.", state: "on" },
         { label: "Time left to v1", value: "240 h", detail: "About 6 working weeks, which puts v1 around early November.", state: "on" },
         { label: "ConnectCAD blocks imported", value: "1,425", detail: "The existing symbol library carried into Topo.", state: "met" },
@@ -345,9 +378,17 @@ window.BLACKOPS = {
       impact: 9,
       effort: 6,
       vision:
-        "Two clicks get an estimate 90% of the way, and everything downstream (orders, labels, kits) falls out of it.",
+        "One system for the whole customer journey, from brand-new lead through support, so the whole team sees the same client: their needs, the products they own and every project we've done together.",
+      shift: {
+        from: "Leads, estimates, contracts, orders and support spread across separate tools, with project updates sent back and forth by email",
+        to: "Apex runs the full journey, and a client portal shows each client live project status from the same source of truth, no asking required"
+      },
+      targets: [
+        { value: "1", label: "system from first lead to support", detail: "Contracts already moved off PandaDoc; Nutshell is next." },
+        { value: "Live", label: "client portal, updates without asking", detail: "Clients read status straight from the source of truth instead of waiting for us to send it." }
+      ],
       mission:
-        "Apex is live and is how we estimate today. The work now is continuous refinement: standard packages (tour-grade, distributed, visionary) grouped by room, areas captured at estimate time, speaker cabling option sets for fast quotes, TV accessories that add themselves, and more of the paperwork moved out of PandaDoc.",
+        "Consolidate the tools that run the customer journey into Apex (CRM, estimating, contracts, change orders, order sheets and support) so sales, engineering, PMs and support work from one record of each client. Then open that record to the client through a portal. Apex is live and refined continuously: standard packages grouped by room, areas captured at estimate time, speaker cabling option sets, and TV accessories that add themselves.",
       objectives: [
         { text: "Apex rolled out as the estimating platform", done: true, owner: "Tyson", step: "simplify" },
         { text: "Move contracts and change orders from PandaDoc into Apex", done: true, owner: "Tyson", step: "delete" },
@@ -362,7 +403,9 @@ window.BLACKOPS = {
         { text: "Find in Projects: search any part across current and past projects", done: true, owner: "Tyson", step: "simplify" },
         { text: "Slack DMs when you're mentioned in Apex", done: true, owner: "Tyson", step: "automate" },
         { text: "Move the master parts list into Apex and retire the Google sheet", done: false, owner: "Tyson", step: "delete" },
-        { text: "Auto-generated reports for final project meetings", done: false, owner: "Tyson", step: "automate" }
+        { text: "Auto-generated reports for final project meetings", done: false, owner: "Tyson", step: "automate" },
+        { text: "Client portal: live project status, timeline and documents from the source of truth", done: false, owner: "Tyson", step: "delete" },
+        { text: "Support history in Apex: every product and project on each client's record", done: false, owner: "Tyson", step: "simplify" }
       ],
       outcomes: [
         { label: "Estimating platform", value: "Live", detail: "Apex is rolled out and in daily use; refinements ship continuously.", state: "met" },
@@ -506,6 +549,13 @@ window.BLACKOPS = {
       effort: 3,
       vision:
         "Leads, email marketing and client history live in Apex, and Nutshell goes away for good.",
+      shift: {
+        from: "Leads, email marketing and client history split between Nutshell and Apex",
+        to: "One system: everything about a client lives in Apex"
+      },
+      targets: [
+        { value: "$15K", label: "a year saved by retiring Nutshell" }
+      ],
       mission:
         "Finish the move off Nutshell: lead management in Apex (done), email marketing rebuilt in Apex with Rachel, and AI meeting summaries landing as concise, consistent CRM notes. Proposals get a visual refresh built on the sales bible and StoryBrand.",
       objectives: [
