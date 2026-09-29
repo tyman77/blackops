@@ -5,7 +5,9 @@ It reads what changed in the sources below, updates `data.js`, checks it, commit
 pushes, and republishes the page. Humans can edit this file to change what it does.
 
 Branch: `claude/black-ops-project-dashboard-l78hin` in `tyman77/blackops`.
-Live page: `SYNC.artifactUrl` in `data.js`.
+Live site: https://blackops.summitintegrated.com (Vercel deploys every push to this branch
+automatically, so step 4 is what updates it).
+Backup page: `SYNC.artifactUrl` in `data.js` (republished in step 5).
 
 ## 0. Start
 
