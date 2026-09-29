@@ -1,0 +1,5 @@
+# Internal files that never need to be served
+ops/
+scripts/
+dist/
+README.md
