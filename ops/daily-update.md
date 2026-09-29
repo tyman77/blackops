@@ -66,7 +66,7 @@ If nothing changed in any source, only advance `SYNC.lastRun` and `asOf`.
 
 ## 3. Check
 
-- `node scripts/check-data.js` must print `data.js OK`. Fix any problem it lists.
+- `node scripts/check-data.cjs` must print `data.js OK`. Fix any problem it lists.
 - `node --check app.js`
 
 Do not publish if either fails; report the error instead.

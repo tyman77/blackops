@@ -76,7 +76,7 @@ Changing `AUTH_SECRET` signs everyone out.
 A scheduled Claude session runs every weekday at about 6:45 AM Central and follows
 `ops/daily-update.md`: it reads new posts in #project_black_ops and #apex, new Black Ops meeting
 notes in ClickUp, and Topo's release plan (once `SYNC.topo.url` in `data.js` is set), updates
-`data.js`, runs `node scripts/check-data.js`, commits, pushes and republishes the page.
+`data.js`, runs `node scripts/check-data.cjs`, commits, pushes and republishes the page.
 `SYNC` in `data.js` records how far each source has been read. Edit the runbook to change the rules.
 
 ## Easter eggs (don't spoil them for the team)

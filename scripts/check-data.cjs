@@ -1,4 +1,4 @@
-// Sanity-checks data.js before anything is published. Run: node scripts/check-data.js
+// Sanity-checks data.js before anything is published. Run: node scripts/check-data.cjs
 // Exits non-zero with a list of problems if the data would break the page.
 global.window = {};
 require("../data.js");

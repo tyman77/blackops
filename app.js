@@ -243,6 +243,26 @@
     }).join("")}</div>`;
   }
 
+  // this project's objectives laid out along the five steps, shown in its file
+  function algoHTML(op) {
+    if (!ALGO.steps.length) return "";
+    const objs = op.objectives || [];
+    const loose = objs.filter((o) => !STEP[o.step]);
+    const cols = ALGO.steps.map((st, n) => {
+      const list = objs.filter((o) => o.step === st.key);
+      const done = list.filter((o) => o.done).length;
+      return `<div class="step ${list.length ? "" : "empty"}">
+        <div class="step-no"><span>${String(n + 1).padStart(2, "0")}</span>${n < ALGO.steps.length - 1 ? '<span class="arrow" aria-hidden="true">→</span>' : ""}</div>
+        <h3>${esc(st.name)}</h3>
+        <div class="step-count"><strong>${done}</strong><span>of ${list.length} moves<br>done</span></div>
+        <div class="step-bar" aria-hidden="true">${list.map((o, i) => `<i class="${i < done ? "on" : ""}"></i>`).join("")}</div>
+        ${list.length ? `<ul>${[...list.filter((o) => !o.done), ...list.filter((o) => o.done)].map((o) => `<li class="${o.done ? "done" : ""}"><span class="box" aria-hidden="true"></span><span><span class="t">${redact(o.text)}</span>${o.owner || o.due ? `<span class="who">${esc(o.owner || "")}${o.due ? ` · due ${fmt(o.due)}` : ""}</span>` : ""}</span></li>`).join("")}</ul>` : '<span class="none">No moves at this step yet</span>'}
+      </div>`;
+    }).join("");
+    const rest = loose.length ? `<ul class="checks">${loose.map((o) => `<li class="${o.done ? "done" : ""}"><span class="box" aria-hidden="true"></span><span>${redact(o.text)}</span></li>`).join("")}</ul>` : "";
+    return `<div class="d-sec"><h3>The Algorithm · ${esc(op.codename)}</h3><div class="algo mine">${cols}</div>${rest}</div>`;
+  }
+
   // ---------- operations reel ----------
   const reel = $("#reel");
   let filter = "all";
@@ -611,11 +631,11 @@
         ${op.shift ? `<div class="shift"><div><span class="label">From</span><p>${redact(op.shift.from)}</p></div><span class="shift-arrow" aria-hidden="true">→</span><div><span class="label">To</span><p>${redact(op.shift.to)}</p></div></div>` : ""}
         ${(op.targets || []).length ? `<div class="targets">${op.targets.map((t) => `<div class="target"><strong>${esc(t.value)}</strong><b>${esc(t.label)}</b>${t.detail ? `<span>${redact(t.detail)}</span>` : ""}</div>`).join("")}</div>` : ""}
       </div>
+      ${algoHTML(op)}
       ${planHTML(op.plan)}
       <div class="d-cols">
         <div style="display:grid;gap:56px;align-content:start">
           <div class="d-sec"><h3>The mission</h3><p>${redact(op.mission)}</p></div>
-          <div class="d-sec"><h3>Objectives</h3><ul class="checks">${(op.objectives || []).map((o) => `<li class="${o.done ? "done" : ""}"><span class="box" aria-hidden="true"></span><span>${stepChip(o.step)}${redact(o.text)}</span>${o.owner || o.due ? `<span class="who">${esc(o.owner || "")}${o.due ? ` · due ${fmt(o.due)}` : ""}</span>` : ""}</li>`).join("")}</ul></div>
           <div class="d-sec"><h3>Phases</h3><div class="phases">${phases}</div></div>
           <div class="d-sec"><h3>Team</h3><div class="roster">${op.team.map((n) => `<span class="person ${n === op.lead ? "lead" : ""}"><span class="av">${initials(n)}</span>${esc(n)}${n === op.lead ? " <em>Lead</em>" : ""}</span>`).join("")}</div></div>
         </div>
@@ -749,7 +769,7 @@
       if (en.isIntersecting) links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${en.target.id}`));
     });
   }, { rootMargin: "-45% 0px -50% 0px" });
-  ["algorithm", "operations", "radar", "timeline", "intel"].forEach((id) => {
+  ["operations", "algorithm", "radar", "timeline", "intel"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) navObs.observe(el);
   });
