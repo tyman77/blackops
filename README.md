@@ -9,21 +9,31 @@ team, risks and an intel log.
 Black Ops runs on **The Algorithm** from Jon McNeill's *The Algorithm: The Hypergrowth Formula
 That Transformed Tesla, Lululemon, General Motors and SpaceX*: question every requirement,
 delete, simplify, accelerate, automate, in that order. Every objective in `data.js` carries a
-`step`, which drives the Algorithm section, the five-step strip on each card, and the step tag
-on each objective.
+`step`, which places it under that step in the project file's *How we're running it* section.
 
 ## Views
 
-- **Hero**: the summit image (`HERO_IMAGE` in `data.js`, default `assets/summit.jpg`, generated in Grok) with one
-  light glowing behind it that follows the pointer. A light background is removed automatically,
-  so a black-on-white illustration sits on the black page; an image on black blends straight in.
-  A tall image fills the right side of the hero; a wide one sits upper right. Swap the file to change the mountain.
-- **The Files**: horizontal reel of every operation. Filter by status, scroll sideways with the wheel or arrows.
-- **Radar**: impact vs effort, sorted into Quick strikes, Major campaigns, Side missions and Rethink.
-- **Timeline**: every phase across months with a "today" line.
-- **Intel log**: latest field reports across all operations.
-- **Dossier**: click any operation for its full file. `←` / `→` move between files, `Esc` closes.
+The page answers four questions for the whole team, in order:
+
+- **Hero**: the summit image (`HERO_IMAGE` in `data.js`, default `assets/summit.jpg`), the
+  mandate, the Algorithm in one line, projects in motion, wins so far and what's up next.
+- **01 Vision · Where we're going**: a card per project with its vision, headline targets and
+  current phase. Filter by status; on desktop the section pins and scrolling slides the cards.
+- **02 Now · Happening now**: each project's current phase (how far through, when it ends) and
+  its latest update.
+- **03 Done · Done so far**: counters (moves done, outcomes delivered, phases complete, Apex
+  releases) and a wall of every win, delivered outcomes first.
+- **04 Next · Coming up**: dated milestones (phases starting, current phases wrapping up,
+  objectives with a due date), then how many moves are on deck.
+- **Project file**: click any project. It reads Vision, Now, Done, Next, then the team. Two folded
+  sections hold the detail: *How we're running it* (the project's objectives under each Algorithm
+  step) and *The full record* (mission, phases, every outcome, risks, release plan, #apex
+  feedback and every update). `←` / `→` move between files, `Esc` closes.
 - **Search**: `⌘K`, `Ctrl+K` or `/` searches codenames, project names, people and pillars.
+
+Everything is derived from `data.js`: Now uses the phase that contains `asOf`, Done counts
+objectives with `done: true`, outcomes with `state: "met"` and phases that have ended, and Next
+lists phases that start after `asOf`, current phases' end dates and open objectives with a `due`.
 
 Each operation can state its goals up front: `vision`, an optional `shift` ({ from, to }) and
 `targets` (headline numbers). They lead the operation's file and the targets show on its card.

@@ -6,11 +6,11 @@
   const $ = (s, el = document) => el.querySelector(s);
 
   const STATUS = {
-    recon: "Recon",
-    active: "Active",
-    extraction: "Extraction",
+    recon: "Scoping",
+    active: "In progress",
+    extraction: "Wrapping up",
     live: "Live",
-    complete: "Complete",
+    complete: "Done",
     hold: "On hold"
   };
   const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii", "xiii", "xiv", "xv"];
@@ -51,11 +51,6 @@
   };
   const fbm = (x, y, o = 4) => { let t = 0, amp = 0.5, f = 1; for (let i = 0; i < o; i++) { t += amp * vnoise(x * f, y * f); f *= 2; amp *= 0.5; } return t; };
 
-  const progress = (op) => {
-    if (op.status === "complete") return 1;
-    const o = op.objectives || [];
-    return o.length ? o.filter((x) => x.done).length / o.length : 0;
-  };
   const windowText = (op) => op.ongoing
     ? `Live · since ${fmt(op.start)}`
     : `${fmt(op.start)} – ${op.estimatedEnd ? fmtMonth(op.end) : fmt(op.end)}`;
@@ -72,24 +67,62 @@
   };
   const fmtVal = (v, unit) => `${Number.isInteger(v) ? v : v.toFixed(1)}${unit && !unit.startsWith("/") && unit !== "%" ? " " : ""}${unit || ""}`;
 
+  // ---------- vision / now / done / next: what each project's data says ----------
+  const DAY = 864e5;
+  const phaseState = (op, p) => {
+    if (p.ongoing) return "live";
+    if (date(p.end) < AS_OF || op.status === "complete") return "done";
+    return date(p.start) <= AS_OF ? "now" : "next";
+  };
+  const phasePct = (p) => clamp((AS_OF - date(p.start)) / (date(p.end) - date(p.start)));
+  const inDays = (s) => {
+    const n = Math.round((date(s) - AS_OF) / DAY);
+    return n <= 0 ? "Today" : n === 1 ? "Tomorrow" : n < 14 ? `In ${n} days` : n < 60 ? `In ${Math.round(n / 7)} weeks` : `In ${Math.round(n / 30)} months`;
+  };
+  const nowPhase = (op) => (op.phases || []).find((p) => ["now", "live"].includes(phaseState(op, p)));
+  const nowLine = (op) => {
+    const p = nowPhase(op);
+    if (!p) return null;
+    if (p.ongoing) return { name: p.name, pct: null, note: `Live since ${fmt(p.start)}` };
+    return { name: p.name, pct: phasePct(p), note: `${Math.round(phasePct(p) * 100)}% through · ends ${inDays(p.end).toLowerCase()}` };
+  };
+  const newest = (op, n = 1) => [...(op.intel || [])].sort((a, b) => date(b.date) - date(a.date)).slice(0, n);
+  const metOutcomes = (op) => (op.outcomes || []).filter((o) => outcomeState(o, op)[0] === "met");
+  const doneObjs = (op) => (op.objectives || []).filter((o) => o.done);
+  const openObjs = (op) => (op.objectives || []).filter((o) => !o.done);
+  const winCount = (op) => doneObjs(op).length + metOutcomes(op).length;
+  const outVal = (o) => (o.value !== undefined ? String(o.value) : o.current !== undefined ? fmtVal(o.current, o.unit) : "");
+  // dated milestones still ahead: a phase starting, the current phase wrapping up, an objective due
+  const milestones = (op) => [
+    ...(op.phases || []).flatMap((p) => {
+      const st = phaseState(op, p);
+      if (st === "next") return [{ op, when: p.start, what: `${p.name} begins`, kind: "start" }];
+      if (st === "now") return [{ op, when: p.end, what: `${p.name} wraps up`, kind: "end" }];
+      return [];
+    }),
+    ...openObjs(op).filter((o) => o.due && date(o.due) >= AS_OF).map((o) => ({ op, when: o.due, what: o.text, kind: "due", who: o.owner }))
+  ].sort((a, b) => date(a.when) - date(b.when));
+  const dateBlock = (s) => { const d = date(s); return `<span class="next-date"><b class="num">${String(d.getDate()).padStart(2, "0")}</b><span>${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}</span></span>`; };
+  const nextRow = (m, button) => `<li class="next-row k-${m.kind}">${button ? `<button type="button" data-op="${m.op.id}" data-cursor="Open file">` : "<div>"}
+      ${dateBlock(m.when)}<span class="next-dot" aria-hidden="true"></span>
+      <span class="next-body">${button ? `<span class="next-code">${esc(m.op.codename)}</span>` : ""}<span class="next-what">${redact(m.what)}</span>${m.who ? `<span class="who-inline">${esc(m.who)}</span>` : ""}</span>
+      <span class="next-in label">${inDays(m.when)}</span>${button ? "</button>" : "</div>"}</li>`;
+
   // ---------- header, briefing ----------
   $("#unitShort").textContent = D.unit.split(/\s+/).map((w) => w[0]).join("").toUpperCase();
   $("#mandate").textContent = D.mandate;
   $("#asof").innerHTML = `${esc(D.unit.toUpperCase())}<br>BRIEFING AS OF ${fmt(D.asOf)}<br>${OPS.length} FILES ON RECORD`;
 
   (function kpis() {
-    const live = OPS.filter((o) => ["recon", "active", "extraction"].includes(o.status)).length;
-    const objs = OPS.flatMap((o) => o.objectives || []);
-    const outs = OPS.flatMap((op) => (op.outcomes || []).map((o) => outcomeState(o, op)[0]));
-    const good = outs.filter((s) => s === "met").length;
-    const next = OPS.flatMap((op) => (op.phases || []).map((p) => ({ op, p })))
-      .filter(({ p }) => date(p.start) > AS_OF)
-      .sort((a, b) => date(a.p.start) - date(b.p.start))[0];
+    const moving = OPS.filter((o) => !["complete", "hold"].includes(o.status)).length;
+    const wins = OPS.reduce((n, op) => n + winCount(op), 0);
+    const next = OPS.flatMap(milestones).filter((m) => m.kind !== "end").sort((a, b) => date(a.when) - date(b.when))[0];
     $("#kpis").innerHTML = `
-      <div class="kpi"><span class="v num">${live}<small> / ${OPS.length}</small></span><span class="label">Live operations</span></div>
-      <div class="kpi"><span class="v num">${objs.filter((o) => o.done).length}<small> / ${objs.length}</small></span><span class="label">Objectives cleared</span></div>
-      <div class="kpi"><span class="v num">${good}<small> / ${outs.length}</small></span><span class="label">Outcomes delivered</span></div>
-      <div class="kpi"><span class="v sm">${next ? `${esc(next.op.codename)}` : "None scheduled"}</span><span class="label">${next ? `Next: ${esc(next.p.name)} · ${fmt(next.p.start)}` : "Next milestone"}</span></div>`;
+      <div class="kpi"><span class="v num" data-count="${moving}">${moving}</span><span class="label">Projects in motion</span></div>
+      <div class="kpi"><span class="v num" data-count="${wins}">${wins}</span><span class="label">Wins so far</span></div>
+      <div class="kpi wide"><span class="v sm">${next ? esc(next.op.codename) : "Nothing scheduled"}</span><span class="label">${next ? `Up next: ${esc(next.what)} · ${fmt(next.when)}` : "Up next"}</span></div>`;
+    const line = $("#algoLine");
+    if (line) line.innerHTML = ALGO.steps.map((st) => `<li>${esc(SHORT[st.key] || st.name)}</li>`).join("");
   })();
 
   (function clock() {
@@ -236,43 +269,6 @@
     mark();
   }
 
-  // ---------- the algorithm ----------
-  (function algorithm() {
-    const el = $("#algo");
-    if (!el || !ALGO.steps.length) { const sec = $("#algorithm"); if (sec) sec.hidden = true; return; }
-    $("#algoRule").textContent = ALGO.rule || "";
-    $("#algoSrc").textContent = ALGO.source ? `Framework: ${ALGO.source}` : "";
-    const moves = OPS.flatMap((op) => (op.objectives || []).map((o) => ({ op, ...o })));
-    el.innerHTML = ALGO.steps.map((st, n) => {
-      const list = moves.filter((m) => m.step === st.key);
-      const done = list.filter((m) => m.done).length;
-      // open moves first, so the column shows what is left to do at this step
-      const show = [...list.filter((m) => !m.done), ...list.filter((m) => m.done)];
-      const top = show.slice(0, 4);
-      return `<div class="step">
-        <div class="step-no"><span>${String(n + 1).padStart(2, "0")}</span>${n < ALGO.steps.length - 1 ? '<span class="arrow" aria-hidden="true">→</span>' : ""}</div>
-        <h3>${esc(st.name)}</h3>
-        <p>${esc(st.line)}</p>
-        <div class="step-count"><strong>${done}</strong><span>of ${list.length} moves<br>done</span></div>
-        <div class="step-bar" aria-hidden="true">${list.map((m, i) => `<i class="${i < done ? "on" : ""}"></i>`).join("")}</div>
-        <ul>${top.map((m) => `<li class="${m.done ? "done" : ""}"><button type="button" data-op="${m.op.id}" data-cursor="Open file"><b>${esc(m.op.codename)}</b><span>${redact(m.text)}</span></button></li>`).join("")}</ul>
-        ${show.length > top.length ? `<span class="more">+${show.length - top.length} more in the files</span>` : ""}
-      </div>`;
-    }).join("");
-    el.addEventListener("click", (e) => { const b = e.target.closest("[data-op]"); if (b) openFile(b.dataset.op, b); });
-    snapTabs(el, stepCounts(moves));
-  })();
-
-  function algoStrip(op) {
-    if (!ALGO.steps.length) return "";
-    return `<div class="algo-strip" aria-label="Algorithm steps covered">${ALGO.steps.map((st) => {
-      const list = (op.objectives || []).filter((o) => o.step === st.key);
-      const cls = !list.length ? "" : list.every((o) => o.done) ? "done" : "open";
-      const d = list.filter((o) => o.done).length;
-      return `<span class="${cls}" title="${esc(st.name)}: ${d} of ${list.length} done">${SHORT[st.key] || st.key}</span>`;
-    }).join("")}</div>`;
-  }
-
   // this project's objectives laid out along the five steps, shown in its file
   function algoHTML(op) {
     if (!ALGO.steps.length) return "";
@@ -310,21 +306,15 @@
     filter = b.dataset.f;
     renderFilters();
     renderReel();
-    if (pinned()) scrollTo({ top: $("#operations").offsetTop });
+    if (pinned()) scrollTo({ top: $("#vision").offsetTop });
     else reel.scrollTo({ left: 0 });
   });
 
-  function ticks(p) {
-    const on = Math.round(p * 20);
-    return Array.from({ length: 20 }, (_, i) => `<i class="${i < on ? "on" : ""}"></i>`).join("");
-  }
-
   function renderReel() {
     const list = OPS.filter((o) => filter === "all" || o.status === filter);
-    if (!list.length) { reel.innerHTML = `<div class="empty">No operations with this status.</div>`; updateScrub(); return; }
+    if (!list.length) { reel.innerHTML = `<div class="empty">No projects with this status.</div>`; updateScrub(); return; }
     reel.innerHTML = list.map((op) => {
-      const p = progress(op);
-      const objs = op.objectives || [];
+      const now = nowLine(op);
       return `
       <button class="op" type="button" data-op="${op.id}" data-cursor="Open file">
         <div class="op-top"><span class="op-idx">${roman(idx(op))}.</span><span class="st st-${op.status}">${STATUS[op.status]}</span></div>
@@ -335,12 +325,11 @@
           ${(op.targets || []).length ? `<div class="op-targets">${op.targets.slice(0, 2).map((t) => `<div><strong>${esc(t.value)}</strong><span>${esc(t.label)}</span></div>`).join("")}</div>` : ""}
         </div>
         <div class="op-foot">
-          <div class="prog">
-            <div class="prog-row"><span class="label">Objectives ${objs.filter((o) => o.done).length}/${objs.length}</span><span class="label num">${Math.round(p * 100)}%</span></div>
-            <div class="ticks" aria-hidden="true">${ticks(p)}</div>
-          </div>
-          ${algoStrip(op)}
-          <div class="op-meta"><span class="label">Lead <b>${esc(op.lead)}</b> · ${esc(op.pillar)}</span><span class="open-cue">File ${esc(op.id)}</span></div>
+          ${now ? `<div class="op-now">
+            <div class="prog-row"><span class="label">Now · <b>${esc(now.name)}</b></span><span class="label num">${now.pct === null ? "Live" : `${Math.round(now.pct * 100)}%`}</span></div>
+            <div class="bar ${now.pct === null ? "live" : ""}" aria-hidden="true"><i style="width:${now.pct === null ? 100 : Math.max(2, now.pct * 100)}%"></i></div>
+          </div>` : ""}
+          <div class="op-meta"><span class="label"><b>${winCount(op)}</b> done · <b>${openObjs(op).length}</b> to go · Lead <b>${esc(op.lead)}</b></span><span class="open-cue">Open</span></div>
         </div>
       </button>`;
     }).join("");
@@ -376,8 +365,8 @@
   const nudge = (d) => pinned()
     ? scrollBy({ top: d * step(), behavior: reduced ? "auto" : "smooth" })
     : reel.scrollBy({ left: d * step(), behavior: reduced ? "auto" : "smooth" });
-  $("#prev").addEventListener("click", () => nudge(-1));
-  $("#next").addEventListener("click", () => nudge(1));
+  $("#reelPrev").addEventListener("click", () => nudge(-1));
+  $("#reelNext").addEventListener("click", () => nudge(1));
 
   function updateScrub() {
     const s = $("#scrub");
@@ -408,162 +397,70 @@
     el._raf = requestAnimationFrame(run);
   }
 
-  // ---------- radar ----------
-  (function radar() {
-    const svg = $("#scope");
-    const S = 600, P = 64;
-    const x = (e) => P + ((e - 0.5) / 10) * (S - 2 * P);
-    const y = (i) => S - P - ((i - 0.5) / 10) * (S - 2 * P);
-    const G = "rgba(255,255,255,.09)", T = "#9C9C9C";
-    let out = "";
-    [70, 140, 210, 280].forEach((r) => (out += `<circle cx="300" cy="300" r="${r}" fill="none" stroke="${G}"/>`));
-    out += `<line x1="${P}" y1="300" x2="${S - P}" y2="300" stroke="rgba(255,255,255,.18)" stroke-dasharray="2 5"/>`;
-    out += `<line x1="300" y1="${P}" x2="300" y2="${S - P}" stroke="rgba(255,255,255,.18)" stroke-dasharray="2 5"/>`;
-    for (let v = 1; v <= 10; v++) {
-      out += `<line x1="${x(v)}" y1="${S - P}" x2="${x(v)}" y2="${S - P + 6}" stroke="${T}"/>`;
-      out += `<line x1="${P - 6}" y1="${y(v)}" x2="${P}" y2="${y(v)}" stroke="${T}"/>`;
-    }
-    out += `<line x1="${P}" y1="${S - P}" x2="${S - P}" y2="${S - P}" stroke="${T}"/><line x1="${P}" y1="${P}" x2="${P}" y2="${S - P}" stroke="${T}"/>`;
-    out += `<text x="${S - P}" y="${S - P + 24}" text-anchor="end" font-size="11" letter-spacing="2" fill="${T}">EFFORT →</text>`;
-    out += `<text x="${P}" y="${S - P + 24}" font-size="11" letter-spacing="2" fill="${T}">1</text>`;
-    out += `<text x="${P - 16}" y="${P}" font-size="11" letter-spacing="2" fill="${T}" transform="rotate(-90 ${P - 16} ${P})" text-anchor="end">IMPACT →</text>`;
-    const q = [["QUICK STRIKES", P + 10, P + 18, "start"], ["MAJOR CAMPAIGNS", S - P - 10, P + 18, "end"], ["SIDE MISSIONS", P + 10, S - P - 12, "start"], ["RETHINK", S - P - 10, S - P - 12, "end"]];
-    q.forEach(([t, qx, qy, a]) => (out += `<text x="${qx}" y="${qy}" text-anchor="${a}" font-size="10" letter-spacing="2.5" fill="rgba(255,255,255,.35)">${t}</text>`));
-
-    // place each label beside its blip, trying spots until it clears the others
-    const boxes = OPS.map((op) => ({ x: x(op.effort) - 9, y: y(op.impact) - 9, w: 18, h: 18 }));
-    const hit = (b) => boxes.some((o) => b.x < o.x + o.w && b.x + b.w > o.x && b.y < o.y + o.h && b.y + b.h > o.y);
-    OPS.forEach((op) => {
-      const cx = x(op.effort), cy = y(op.impact);
-      const w = op.codename.length * 8.6, h = 14;
-      const spots = [
-        [cx + 14, cy + 4, "start", { x: cx + 12, y: cy - 8, w, h }],
-        [cx - 14, cy + 4, "end", { x: cx - 12 - w, y: cy - 8, w, h }],
-        [cx, cy - 16, "middle", { x: cx - w / 2, y: cy - 28, w, h }],
-        [cx, cy + 26, "middle", { x: cx - w / 2, y: cy + 14, w, h }],
-        [cx, cy - 34, "middle", { x: cx - w / 2, y: cy - 46, w, h }],
-        [cx, cy + 44, "middle", { x: cx - w / 2, y: cy + 32, w, h }]
-      ];
-      const [lx, ly, anchor, box] = spots.find((s) => !hit(s[3]) && s[3].x > P - 4 && s[3].x + s[3].w < S - 4) || spots[0];
-      boxes.push(box);
-      const hollow = op.status === "recon" || op.status === "hold";
-      const fill = op.status === "complete" ? "#9C9C9C" : hollow ? "#000000" : "#FFFFFF";
-      const dash = op.status === "hold" ? ' stroke-dasharray="2 2"' : "";
-      out += `<g class="blip" tabindex="0" role="button" data-op="${op.id}" data-cursor="Open file" aria-label="${esc(op.codename)}: impact ${op.impact}, effort ${op.effort}">
-        ${op.status === "active" ? `<circle class="ring" cx="${cx}" cy="${cy}" r="7" fill="none" stroke="#FFFFFF"/>` : ""}
-        ${op.status === "live" ? `<circle cx="${cx}" cy="${cy}" r="11" fill="none" stroke="#FFFFFF" stroke-width="1"/>` : ""}
-        <circle class="dot" cx="${cx}" cy="${cy}" r="7" fill="${fill}" stroke="#FFFFFF" stroke-width="1.5"${dash}/>
-        <text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="12" letter-spacing="1.5" fill="#FFFFFF">${esc(op.codename)}</text>
-      </g>`;
-    });
-    svg.innerHTML = out;
-    const go = (e) => { const g = e.target.closest("[data-op]"); if (g) openFile(g.dataset.op, g); };
-    svg.addEventListener("click", go);
-    svg.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e); } });
-
-    const quad = (hiI, hiE) => OPS.filter((o) => (o.impact > 5.5) === hiI && (o.effort > 5.5) === hiE);
-    const Q = [
-      ["Quick strikes", "High impact, low effort. Protect these and ship them fast.", quad(true, false)],
-      ["Major campaigns", "High impact, high effort. Staff them properly and phase them.", quad(true, true)],
-      ["Side missions", "Low effort, modest impact. Fill gaps between big pushes.", quad(false, false)],
-      ["Rethink", "High effort for modest impact. Rescope or retire.", quad(false, true)]
-    ];
-    $("#quads").innerHTML = Q.map(([t, d, list]) => `
-      <div class="quad"><h3>${t}</h3><p>${d}</p>
-        <ul>${list.length ? list.map((o) => `<li><button type="button" data-op="${o.id}" data-cursor="Open">${roman(idx(o))}. ${esc(o.codename)}</button></li>`).join("") : `<li class="none">NO FILES</li>`}</ul>
-      </div>`).join("");
-    $("#quads").addEventListener("click", go);
-  })();
-
-  // ---------- timeline ----------
-  (function timeline() {
-    const starts = OPS.map((o) => date(o.start)), ends = OPS.map((o) => date(o.end));
-    const a = new Date(Math.min(...starts)); a.setDate(1);
-    const b = new Date(Math.max(...ends)); b.setMonth(b.getMonth() + 1, 1);
-    const months = [];
-    for (const d = new Date(a); d < b; d.setMonth(d.getMonth() + 1)) months.push(new Date(d));
-    const span = b - a;
-    const pos = (d) => clamp((d - a) / span) * 100;
-    const cols = `repeat(${months.length}, 1fr)`;
-
-    let html = `<div class="tl-head"><div class="tl-label label">Operation</div><div class="tl-months" style="grid-template-columns:${cols}">${months.map((m) => `<span>${MONTHS[m.getMonth()]} ${String(m.getFullYear()).slice(2)}</span>`).join("")}</div></div>`;
-    OPS.forEach((op) => {
-      const segs = (op.phases || []).map((p) => {
-        const s = date(p.start), e = date(p.end);
-        const l = pos(s), w = Math.max(pos(e) - l, 0.6);
-        let cls = "", style = `left:${l}%;width:calc(${w}% - 2px)`;
-        if (p.ongoing) { cls = "ongoing"; style = `left:${l}%;right:0`; }
-        else if (e < AS_OF || op.status === "complete") cls = "done";
-        else if (s <= AS_OF) { cls = "now"; style += `;--p:${Math.round(clamp((AS_OF - s) / (e - s)) * 100)}%`; }
-        return `<div class="seg ${cls}" style="${style}" title="${esc(p.name)}: ${p.ongoing ? `since ${fmt(p.start)}, no end date` : `${fmt(p.start)} to ${fmt(p.end)}`}"><span class="seg-t">${esc(p.name)}${p.ongoing ? " →" : ""}</span></div>`;
-      }).join("");
-      html += `<button class="tl-row" type="button" data-op="${op.id}" data-cursor="Open file">
-        <span class="tl-label"><span class="c">${esc(op.codename)}</span><span class="t">${esc(op.title)}</span></span>
-        <span class="tl-track"><span class="tl-grid" style="grid-template-columns:${cols}">${months.map(() => "<i></i>").join("")}</span>${segs}</span>
+  // ---------- now: the current phase and the latest word from each project ----------
+  (function nowSection() {
+    $("#nowAsOf").textContent = `As of ${fmt(D.asOf)}`;
+    const el = $("#nowGrid");
+    el.innerHTML = OPS.map((op) => {
+      const n = nowLine(op), last = newest(op)[0];
+      return `<button class="now-card" type="button" data-op="${op.id}" data-cursor="Open file">
+        <span class="now-top"><span class="now-code">${esc(op.codename)}</span><span class="st st-${op.status}">${STATUS[op.status]}</span></span>
+        <span class="now-title">${esc(op.title)}</span>
+        ${n ? `<span class="now-phase"><b>${esc(n.name)}</b><span class="label">${esc(n.note)}</span></span>
+        <span class="bar ${n.pct === null ? "live" : ""}" aria-hidden="true"><i style="width:${n.pct === null ? 100 : Math.max(2, n.pct * 100)}%"></i></span>` : ""}
+        ${last ? `<span class="now-latest"><span class="label">Latest · ${fmt(last.date)}</span><span>${redact(last.text)}</span></span>` : ""}
       </button>`;
-    });
-    html += `<div class="today" style="left:calc(200px + (100% - 200px) * ${pos(AS_OF) / 100})"><span>TODAY ${fmt(D.asOf)}</span></div>`;
-    const tl = $("#tl");
-    tl.innerHTML = html;
-    tl.addEventListener("click", (e) => { const r = e.target.closest("[data-op]"); if (r) openFile(r.dataset.op, r); });
-    // phones get a list of phases per operation instead of the wide chart
-    const list = $("#tlList");
-    if (list) {
-      list.innerHTML = `<p class="label tl-asof">As of ${fmt(D.asOf)} · tap an operation to open its file</p>` + OPS.map((op) => `
-        <button class="tlc" type="button" data-op="${op.id}">
-          <span class="tlc-h"><span class="c">${esc(op.codename)}</span><span class="t">${esc(op.title)}</span></span>
-          <ol>${(op.phases || []).map((p) => {
-            const s = date(p.start), e = date(p.end);
-            let cls = "next", state = "Next", bar = "";
-            if (p.ongoing) { cls = "ongoing"; state = "Live"; }
-            else if (e < AS_OF || op.status === "complete") { cls = "done"; state = "Done"; }
-            else if (s <= AS_OF) {
-              const pc = Math.round(clamp((AS_OF - s) / (e - s)) * 100);
-              cls = "now"; state = `${pc}%`; bar = `<span class="bar" aria-hidden="true"><i style="width:${pc}%"></i></span>`;
-            }
-            return `<li class="${cls}"><span class="dot" aria-hidden="true"></span><span class="n">${esc(p.name)}</span><span class="s">${state}</span><span class="d">${p.ongoing ? `Since ${fmt(p.start)}, ongoing` : `${fmt(p.start)} – ${fmt(p.end)}`}</span>${bar}</li>`;
-          }).join("")}</ol>
-        </button>`).join("");
-      list.addEventListener("click", (e) => { const r = e.target.closest("[data-op]"); if (r) openFile(r.dataset.op, r); });
+    }).join("");
+    el.addEventListener("click", (e) => { if (e.target.closest(".redact")) return; const c = e.target.closest("[data-op]"); if (c) openFile(c.dataset.op, c); });
+  })();
+
+  // ---------- done: every win so far ----------
+  (function doneSection() {
+    const moves = OPS.flatMap((op) => doneObjs(op).map((o) => ({ op, kind: "move", text: o.text, who: o.owner })));
+    const outs = OPS.flatMap((op) => metOutcomes(op).map((o) => ({ op, kind: "outcome", label: o.label, value: outVal(o) })));
+    const phases = OPS.reduce((n, op) => n + (op.phases || []).filter((p) => phaseState(op, p) === "done").length, 0);
+    const releases = OPS.reduce((n, op) => n + ((op.feedback && op.feedback.shipped) || []).length, 0);
+    $("#doneStats").innerHTML = [[moves.length, "Moves done"], [outs.length, "Outcomes delivered"], [phases, "Phases complete"], [releases, "Apex releases shipped"]]
+      .filter(([n]) => n).map(([n, l]) => `<div class="done-stat"><strong class="num" data-count="${n}">${n}</strong><span class="label">${l}</span></div>`).join("");
+
+    // outcomes first, then moves dealt round-robin so the wall mixes projects
+    const perOp = OPS.map((op) => moves.filter((m) => m.op === op));
+    const dealt = [];
+    for (let i = 0; perOp.some((l) => l[i]); i++) perOp.forEach((l) => { if (l[i]) dealt.push(l[i]); });
+    const all = [...outs, ...dealt];
+    const tile = (w) => w.kind === "outcome"
+      ? `<button class="win big" type="button" data-op="${w.op.id}" data-cursor="Open file"><span class="win-code">${esc(w.op.codename)}</span><strong>${esc(w.value || w.label)}</strong><span class="win-t">${esc(w.label)}</span></button>`
+      : `<button class="win" type="button" data-op="${w.op.id}" data-cursor="Open file"><span class="win-code">${esc(w.op.codename)}</span><span class="win-t"><span class="win-check" aria-hidden="true">✓</span>${redact(w.text)}</span>${w.who ? `<span class="win-who">${esc(w.who)}</span>` : ""}</button>`;
+    const el = $("#wins"), more = $("#winsMore"), FIRST = 12;
+    el.innerHTML = all.slice(0, FIRST).map(tile).join("");
+    if (all.length > FIRST) {
+      more.hidden = false;
+      more.textContent = `Show all ${all.length} wins`;
+      more.addEventListener("click", () => { el.insertAdjacentHTML("beforeend", all.slice(FIRST).map(tile).join("")); more.hidden = true; }, { once: true });
     }
-    // start scrolled so today sits near the left third
-    const sc = tl.parentElement;
-    requestAnimationFrame(() => { sc.scrollLeft = Math.max(0, (tl.scrollWidth - 200) * (pos(AS_OF) / 100) - sc.clientWidth * 0.35); });
+    el.addEventListener("click", (e) => { if (e.target.closest(".redact")) return; const c = e.target.closest("[data-op]"); if (c) openFile(c.dataset.op, c); });
   })();
 
-  // ---------- intel log ----------
-  (function briefings() {
-    const el = $("#briefings");
-    const list = Object.values(MEET).sort((a, b) => date(b.date) - date(a.date));
-    if (!el || !list.length) { if (el) el.hidden = true; return; }
-    const latest = OPS.flatMap((op) => (op.intel || []).filter((i) => i.slack)).sort((a, b) => date(b.date) - date(a.date))[0];
-    const chanCard = (c, label) => c ? `
-      <a class="brief-card chan" href="${esc(c.url)}" target="_blank" rel="noopener" data-cursor="Open Slack">
-        <span class="label num">${label}</span>
-        <b>${esc(c.name)}</b>
-        <span class="brief-sum">${esc(c.summary)}</span>
-        <span class="open-cue">Open channel</span>
-      </a>` : "";
-    const chan = chanCard(CH, `Slack${latest ? ` · last post ${fmt(latest.date)}` : ""}`) + chanCard(D.APEX_CHANNEL, "Slack · Apex requests and releases");
-    el.innerHTML = chan + list.map((m) => `
-      <a class="brief-card" href="${esc(m.url)}" target="_blank" rel="noopener" data-cursor="Open notes">
-        <span class="label num">${fmt(m.date)} · ${m.attendees.length} attendees</span>
-        <b>${esc(m.title)}</b>
-        <span class="brief-sum">${esc(m.summary)}</span>
-        <span class="brief-who">${m.attendees.map((n) => `<span class="av" title="${esc(n)}">${initials(n)}</span>`).join("")}</span>
-        <span class="open-cue">Meeting notes</span>
-      </a>`).join("");
+  // ---------- next: dated milestones, then what's on deck ----------
+  (function nextSection() {
+    const items = OPS.flatMap(milestones).sort((a, b) => date(a.when) - date(b.when));
+    const open = OPS.reduce((n, op) => n + openObjs(op).length, 0);
+    const el = $("#nextList");
+    el.innerHTML = items.map((m) => nextRow(m, true)).join("") +
+      `<li class="next-row k-deck"><div><span class="next-date"><b class="num">+${open}</b><span>On deck</span></span><span class="next-dot" aria-hidden="true"></span>
+        <span class="next-body"><span class="next-what">${open} more moves are lined up across the projects. Open any file to see who's on what.</span></span></div></li>`;
+    el.addEventListener("click", (e) => { if (e.target.closest(".redact")) return; const c = e.target.closest("[data-op]"); if (c) openFile(c.dataset.op, c); });
   })();
 
-  (function log() {
-    const rows = OPS.flatMap((op) => (op.intel || []).map((i) => ({ op, ...i })))
-      .sort((a, b) => date(b.date) - date(a.date)).slice(0, 10);
-    const el = $("#log");
-    el.innerHTML = rows.map((r) => `
-      <button class="log-row" type="button" data-op="${r.op.id}" data-cursor="Open file">
-        <span class="label num">${fmt(r.date)}</span><span class="c">${esc(r.op.codename)}</span><span>${redact(r.text)}${r.slack ? ' <span class="via">Slack</span>' : r.doc ? ` <span class="via">${esc(r.doc)}</span>` : ""}</span><span class="arrow">→</span>
-      </button>`).join("");
-    el.addEventListener("click", (e) => { const r = e.target.closest("[data-op]"); if (r) openFile(r.dataset.op, r); });
+  // ---------- footer: where to follow along ----------
+  (function follow() {
+    const last = Object.values(MEET).sort((a, b) => date(b.date) - date(a.date))[0];
+    const links = [
+      CH && `<a href="${esc(CH.url)}" target="_blank" rel="noopener">${esc(CH.name)} ↗</a>`,
+      D.APEX_CHANNEL && `<a href="${esc(D.APEX_CHANNEL.url)}" target="_blank" rel="noopener">${esc(D.APEX_CHANNEL.name)} ↗</a>`,
+      last && `<a href="${esc(last.url)}" target="_blank" rel="noopener">Latest meeting notes · ${fmt(last.date)} ↗</a>`
+    ].filter(Boolean);
+    $("#follow").innerHTML = `Follow along: ${links.join(" · ")}`;
   })();
 
   // ---------- dossier ----------
@@ -642,7 +539,6 @@
     if (!op) return;
     if (!dossier.classList.contains("on")) returnFocus = from || document.activeElement;
     current = op;
-    const p = progress(op);
     const phases = (op.phases || []).map((ph) => {
       const s = date(ph.start), e = date(ph.end);
       const past = e < AS_OF || op.status === "complete";
@@ -670,37 +566,79 @@
     }).join("");
 
     $("#dFile").textContent = `File ${op.id} · ${roman(idx(op))} of ${roman(OPS.length - 1)} · Clearance ${op.clearance}`;
+    const now = nowLine(op), np = nowPhase(op);
+    const met = metOutcomes(op), done = doneObjs(op), open = openObjs(op), ahead = milestones(op);
+    const pastPhases = (op.phases || []).filter((ph) => phaseState(op, ph) === "done");
+    const shipped = (op.feedback && op.feedback.shipped) || [];
     $("#dBody").innerHTML = `
       <div class="d-hero">
-        <span class="label">Operation</span>
+        <span class="label">Project file</span>
         <h2 class="op-name" id="dName">${esc(op.codename)}</h2>
         <div class="d-sub"><p class="op-title">${esc(op.title)}</p><span class="st st-${op.status}">${STATUS[op.status]}</span><span class="stamp">${esc(op.clearance)}</span></div>
         <div class="facts">
           <div class="fact"><span class="label">Lead</span><b>${esc(op.lead)}</b></div>
-          <div class="fact"><span class="label">Pillar</span><b>${esc(op.pillar)}</b></div>
+          <div class="fact"><span class="label">Team</span><b>${op.team.length} people · ${esc(op.pillar)}</b></div>
           <div class="fact"><span class="label">${op.ongoing ? "Status" : `Window${op.estimatedEnd ? " · end est." : ""}`}</span><b class="num">${windowText(op)}</b></div>
-          <div class="fact"><span class="label">Objectives</span><b class="num">${Math.round(p * 100)}% cleared</b></div>
+          <div class="fact"><span class="label">Scoreboard</span><b class="num">${winCount(op)} done · ${open.length} to go</b></div>
         </div>
       </div>
-      <div class="d-sec vt"><h3>${op.targets ? "Vision & targets" : "Vision"}</h3><p class="vision">${redact(op.vision)}</p>
+
+      <div class="d-sec vt"><h3><span class="d-step">01</span>Vision</h3><p class="vision">${redact(op.vision)}</p>
         ${op.shift ? `<div class="shift"><div><span class="label">From</span><p>${redact(op.shift.from)}</p></div><span class="shift-arrow" aria-hidden="true">→</span><div><span class="label">To</span><p>${redact(op.shift.to)}</p></div></div>` : ""}
         ${(op.targets || []).length ? `<div class="targets">${op.targets.map((t) => `<div class="target"><strong>${esc(t.value)}</strong><b>${esc(t.label)}</b>${t.detail ? `<span>${redact(t.detail)}</span>` : ""}</div>`).join("")}</div>` : ""}
       </div>
-      ${algoHTML(op)}
-      ${planHTML(op.plan)}
-      <div class="d-cols">
-        <div style="display:grid;gap:56px;align-content:start">
-          <div class="d-sec"><h3>The mission</h3><p>${redact(op.mission)}</p></div>
-          <div class="d-sec"><h3>Phases</h3><div class="phases">${phases}</div></div>
-          <div class="d-sec"><h3>Team</h3><div class="roster">${op.team.map((n) => `<span class="person ${n === op.lead ? "lead" : ""}"><span class="av">${initials(n)}</span>${esc(n)}${n === op.lead ? " <em>Lead</em>" : ""}</span>`).join("")}</div></div>
-        </div>
-        <div style="display:grid;gap:56px;align-content:start">
-          <div class="d-sec"><h3>Outcomes</h3><div class="outcomes">${outcomes || '<p class="label">No outcomes defined yet</p>'}</div></div>
-          <div class="d-sec"><h3>Risks</h3><div>${(op.risks || []).length ? op.risks.map((r) => `<div class="risk"><span class="sev sev-${r.sev}">${r.sev === "med" ? "Medium" : r.sev}</span><span>${redact(r.text)}</span></div>`).join("") : '<p class="label">No open risks</p>'}</div></div>
-          <div class="d-sec"><h3>Intel log</h3><div class="feed">${(op.intel || []).map((i) => `<div><time datetime="${i.date}">${fmt(i.date)}</time><span>${redact(i.text)}${srcLink(i)}</span></div>`).join("")}</div></div>
+
+      <div class="d-sec"><h3><span class="d-step">02</span>Now</h3>
+        <div class="d-cols">
+          <div class="now-phase-big">${now ? `
+            <span class="label">Current phase</span>
+            <b>${esc(now.name)}</b>
+            <div class="bar ${now.pct === null ? "live" : ""}" aria-hidden="true"><i style="width:${now.pct === null ? 100 : Math.max(2, now.pct * 100)}%"></i></div>
+            <span class="label">${esc(now.note)}${np && !np.ongoing ? ` · ${fmt(np.start)} – ${fmt(np.end)}` : ""}</span>` : `<span class="label">Between phases</span>`}
+          </div>
+          <div class="d-sec"><span class="label">Latest updates</span><div class="feed">${newest(op, 3).map((i) => `<div><time datetime="${i.date}">${fmt(i.date)}</time><span>${redact(i.text)}${srcLink(i)}</span></div>`).join("") || '<p class="label">No updates yet</p>'}</div></div>
         </div>
       </div>
-      ${feedbackHTML(op.feedback)}`;
+
+      <div class="d-sec"><h3><span class="d-step">03</span>Done</h3>
+        ${met.length ? `<div class="wins in-file">${met.map((o) => `<div class="win big"><strong>${esc(outVal(o) || o.label)}</strong><span class="win-t">${esc(o.label)}</span>${o.detail ? `<span class="win-who">${redact(o.detail)}</span>` : ""}</div>`).join("")}</div>` : ""}
+        <ul class="done-list">${done.map((o) => `<li><span class="win-check" aria-hidden="true">✓</span><span>${redact(o.text)}</span>${o.owner ? `<span class="who">${esc(o.owner)}</span>` : ""}</li>`).join("")}
+          ${pastPhases.map((ph) => `<li><span class="win-check" aria-hidden="true">✓</span><span>Phase complete: ${esc(ph.name)}</span><span class="who">${fmt(ph.start)} – ${fmt(ph.end)}</span></li>`).join("")}</ul>
+        ${shipped.length ? `<div class="d-sec"><span class="label">Latest releases · ${shipped.length} shipped</span><div class="feed">${shipped.slice(0, 5).map((x) => `<div><time datetime="${x.date}">${fmt(x.date)}</time><span>${esc(x.text)}</span></div>`).join("")}</div></div>` : ""}
+        ${!met.length && !done.length && !pastPhases.length ? '<p class="label">First wins are on the way</p>' : ""}
+      </div>
+
+      <div class="d-sec"><h3><span class="d-step">04</span>Next</h3>
+        <div class="d-cols">
+          <div class="d-sec"><span class="label">Coming up</span>${ahead.length ? `<ol class="next-list in-file">${ahead.map((m) => nextRow(m, false)).join("")}</ol>` : '<p class="label">No dated milestones ahead</p>'}</div>
+          <div class="d-sec"><span class="label">On deck · ${open.length} moves</span><ul class="todo">${open.map((o) => `<li><span>${redact(o.text)}</span><span class="who">${esc(o.owner || "")}${o.due ? ` · due ${fmt(o.due)}` : ""}</span></li>`).join("")}</ul></div>
+        </div>
+      </div>
+
+      <div class="d-sec"><h3>The team</h3><div class="roster">${op.team.map((n) => `<span class="person ${n === op.lead ? "lead" : ""}"><span class="av">${initials(n)}</span>${esc(n)}${n === op.lead ? " <em>Lead</em>" : ""}</span>`).join("")}</div></div>
+
+      <div class="more-wrap">
+      <details class="more">
+        <summary><span>How we're running it</span><span class="label">The Algorithm, step by step</span></summary>
+        ${algoHTML(op)}
+      </details>
+      <details class="more">
+        <summary><span>The full record</span><span class="label">Mission, every outcome, risks${op.plan ? ", release plan" : ""}${op.feedback ? ", #apex feedback" : ""} and every update</span></summary>
+        <div class="more-body">
+          <div class="d-sec"><h3>The mission</h3><p>${redact(op.mission)}</p></div>
+          <div class="d-sec"><h3>Phases</h3><div class="phases">${phases}</div></div>
+          ${planHTML(op.plan)}
+          <div class="d-cols">
+            <div class="d-sec"><h3>Outcomes</h3><div class="outcomes">${outcomes || '<p class="label">No outcomes defined yet</p>'}</div></div>
+            <div style="display:grid;gap:56px;align-content:start">
+              <div class="d-sec"><h3>Risks</h3><div>${(op.risks || []).length ? op.risks.map((r) => `<div class="risk"><span class="sev sev-${r.sev}">${r.sev === "med" ? "Medium" : r.sev}</span><span>${redact(r.text)}</span></div>`).join("") : '<p class="label">No open risks</p>'}</div></div>
+              <div class="d-sec"><h3>Every update</h3><div class="feed">${(op.intel || []).map((i) => `<div><time datetime="${i.date}">${fmt(i.date)}</time><span>${redact(i.text)}${srcLink(i)}</span></div>`).join("")}</div></div>
+            </div>
+          </div>
+          ${feedbackHTML(op.feedback)}
+        </div>
+      </details>
+      </div>`;
 
     snapTabs($(".algo.mine", dossier), stepCounts(op.objectives || []));
     $("#cursor").classList.remove("big");
@@ -737,11 +675,10 @@
   const pal = $("#palScrim"), input = $("#palInput"), list = $("#palList");
   let sel = 0, results = [];
   const SECTIONS = [
-    { kind: "Section", name: "The Algorithm", sub: "Question, delete, simplify, accelerate, automate", go: () => jump("#algorithm") },
-    { kind: "Section", name: "Operations", sub: "Horizontal index of every file", go: () => jump("#operations") },
-    { kind: "Section", name: "Radar", sub: "Impact vs effort", go: () => jump("#radar") },
-    { kind: "Section", name: "Timeline", sub: "Phases and today", go: () => jump("#timeline") },
-    { kind: "Section", name: "Intel", sub: "Latest field reports", go: () => jump("#intel") }
+    { kind: "Section", name: "Vision", sub: "Where each project is going", go: () => jump("#vision") },
+    { kind: "Section", name: "Now", sub: "What's happening this week", go: () => jump("#now") },
+    { kind: "Section", name: "Done", sub: "Every win so far", go: () => jump("#done") },
+    { kind: "Section", name: "Next", sub: "What's coming up", go: () => jump("#next") }
   ];
   const jump = (h) => { closeFile(); document.querySelector(h).scrollIntoView({ behavior: reduced ? "auto" : "smooth" }); };
 
@@ -825,7 +762,7 @@
       if (en.isIntersecting) links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${en.target.id}`));
     });
   }, { rootMargin: "-45% 0px -50% 0px" });
-  ["operations", "algorithm", "radar", "timeline", "intel"].forEach((id) => {
+  ["vision", "now", "done", "next"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) navObs.observe(el);
   });

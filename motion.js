@@ -5,10 +5,10 @@
  * - smooth wheel scrolling on desktop (Lenis); phones keep native scrolling
  * - altimeter on the right edge (a climb line under the header on phones)
  * - hero: push into the mountain, the light dims, BLACK and OPS split apart
- * - files: on desktop the section pins and vertical scroll moves the reel sideways
- * - section titles rise out of a mask; cards, rows and panels rise in
- * - the Algorithm: a fuse runs through the five steps in order and lights each one
- * - timeline bars draw in; the footer wordmark fills with light at the bottom
+ * - vision: on desktop the section pins and vertical scroll moves the project cards sideways
+ * - section titles rise out of a mask; cards, wins and milestones rise in; counters count up
+ * - next: a fuse runs down the milestones and lights each one as it passes
+ * - the footer wordmark fills with light at the bottom
  */
 (() => {
   "use strict";
@@ -42,8 +42,8 @@
   // ---------- elements ----------
   const hero = $(".hero");
   const alti = $("#alti"), altiRead = $("#altiRead"), climb = $("#climb");
-  const ops = $("#operations"), pin = $(".ops-pin"), reel = $("#reel");
-  const algo = $("#algo");
+  const ops = $("#vision"), pin = $(".ops-pin"), reel = $("#reel");
+  const nextList = $("#nextList");
   const foot = $(".big-foot");
 
   // ---------- section titles: words rise out of a mask ----------
@@ -62,6 +62,7 @@
       const el = en.target;
       reveal.unobserve(el);
       if (el.classList.contains("rise")) { el.classList.add("in"); return; }
+      $$("[data-count]", el).forEach(countUp);
       el.style.transitionDelay = `${Math.min(n++, 6) * 70}ms`;
       el.classList.add("in");
       // hand the element back to its own hover transitions once it has landed
@@ -73,24 +74,16 @@
     $$(sel).forEach((el) => { if (!el.classList.contains("rv")) { el.classList.add("rv"); reveal.observe(el); } });
   }
   $$(".sec-head h2.rise").forEach((h) => reveal.observe(h));
-  watch(".reel .op, .brief-card, .log-row, .quad, .scope, .tlc, .tl-asof");
+  watch(".reel .op, .now-card, .done-stat, .win, .next-row");
   if (reel) new MutationObserver(() => { watch(".reel .op"); measure(); }).observe(reel, { childList: true });
+  const wins = $("#wins");
+  if (wins) new MutationObserver(() => watch("#wins .win")).observe(wins, { childList: true });
+  // hero numbers count up once the title has landed
+  setTimeout(() => $$(".kpis [data-count]").forEach(countUp), 900);
 
-  // ---------- timeline: bars draw in, row by row ----------
-  const tl = $("#tl");
-  if (tl) {
-    $$(".tl-row", tl).forEach((r, i) => r.style.setProperty("--i", i));
-    tl.classList.add("draw");
-    new IntersectionObserver((ents, o) => {
-      if (ents.some((e) => e.isIntersecting)) { tl.classList.add("drawn"); o.disconnect(); }
-    }, { threshold: 0.2 }).observe(tl);
-  }
-
-  // ---------- the Algorithm: light the steps in order ----------
-  let fused = false;
-  const lit = new Set();
+  // ---------- counters ----------
   function countUp(el) {
-    const end = parseInt(el.textContent, 10);
+    const end = parseInt(el.dataset.count || el.textContent, 10);
     if (!Number.isFinite(end) || end === 0) return;
     const t0 = performance.now();
     const tick = (t) => {
@@ -116,14 +109,6 @@
       const h = fits ? `${innerHeight + travel}px` : "";
       if (ops.style.height !== h) ops.style.height = h;
       opsTop = ops.getBoundingClientRect().top + scrollY;
-    }
-
-    // the fuse only reads across five columns; narrower layouts reveal the steps instead
-    if (algo) {
-      const cols = getComputedStyle(algo).gridTemplateColumns.split(" ").filter(Boolean).length;
-      fused = wide.matches && cols === 5 && getComputedStyle(algo).display === "grid";
-      algo.classList.toggle("fused", fused);
-      if (!fused) watch("#algo .step");
     }
 
     maxY = Math.max(1, document.documentElement.scrollHeight - innerHeight);
@@ -159,16 +144,12 @@
       reel.style.setProperty("--skew", `${clamp(vel * -2.2, -6, 6).toFixed(2)}deg`);
     }
 
-    // the fuse
-    if (fused) {
-      const r = algo.getBoundingClientRect();
-      const f = clamp((vh * 0.82 - r.top) / (vh * 0.5));
-      algo.style.setProperty("--fuse", f.toFixed(4));
-      $$(".step", algo).forEach((st, i) => {
-        const on = f >= (i + 0.35) / 5;
-        st.classList.toggle("lit", on);
-        if (on && !lit.has(i)) { lit.add(i); const n = $(".step-count strong", st); if (n) countUp(n); }
-      });
+    // the fuse runs down the milestones as you read them
+    if (nextList) {
+      const r = nextList.getBoundingClientRect();
+      const reach = vh * 0.62 - r.top;
+      nextList.style.setProperty("--fuse", clamp(reach / r.height).toFixed(4));
+      $$(".next-row", nextList).forEach((row) => row.classList.toggle("lit", row.offsetTop + row.offsetHeight / 2 <= reach));
     }
 
     // footer wordmark fills as you reach the top
