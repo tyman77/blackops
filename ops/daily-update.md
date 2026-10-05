@@ -26,6 +26,27 @@ Open threads that have replies. Look at attached screenshots when a message depe
 "Project Black Ops Updates - MM/DD/YYYY". Any doc id not in `knownDocs` is new. Read its
 summary page (not the transcript unless something is unclear).
 
+**Apex database** (`SYNC.apexDb`): what was built in Apex, which #apex rarely announces. Read
+the Apex Supabase project (`SYNC.apexDb.supabaseProject`) with the Supabase connector's
+`execute_sql`, read only.
+
+```sql
+-- what shipped: every database change is a dated migration with a descriptive name
+select version, name, left(array_to_string(statements, ' '), 600) s
+from supabase_migrations.schema_migrations where version > '<SYNC.apexDb.lastMigration>' order by version;
+-- how many people use Apex, per week
+select date_trunc('week', day)::date wk, count(distinct user_id) users, sum(views) views
+from page_view_daily where day >= current_date - 21 group by 1 order by 1;
+```
+
+Group the migrations into the few features they add up to (a run of shopify_* migrations is one
+feature) and read the comment at the top of each migration for what it is for. Add one APEX intel
+entry per real feature with `doc: "Apex database"`, in plain words a staff member would follow;
+skip caches, backfills, fixes to earlier migrations and internal plumbing. Only count rows to put
+a number on a feature (products synced, tickets imported); never quote financial amounts, client
+names or anything from bonus, payroll or P&L tables. Update the "People in Apex each week"
+outcome from the last full week. Set `SYNC.apexDb.lastMigration` to the newest version read.
+
 **Topo progress** (`SYNC.topo`): read the release board straight from the Topo2 Supabase
 project (`SYNC.topo.supabaseProject`) with the Supabase connector's `execute_sql`. Read only;
 never write to it. The release plan PDF is printed from these same tables.

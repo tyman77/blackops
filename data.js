@@ -57,6 +57,7 @@ window.BLACKOPS = {
       meetingTitle: "Project Black Ops Updates",
       knownDocs: ["2ky3v16t-230833", "2ky3v16t-252413", "2ky3v16t-263493"]
     },
+    apexDb: { supabaseProject: "wmmjwuilmebtqesjqtnl", lastMigration: "20261005021538", lastChecked: "2026-10-04" },
     topo: { supabaseProject: "gspsywhthostnwjcfvcf", lastChecked: "2026-10-04", lastChange: "2026-09-21" },
     artifactUrl: "https://claude.ai/artifact/U8bbbfWX9r1bpVV3iHyZJw"
   },
@@ -424,7 +425,7 @@ window.BLACKOPS = {
         { text: "Per-unit serials, area and location on every order sheet line", done: true, owner: "Tyson", step: "simplify" },
         { text: "Find in Projects: search any part across current and past projects", done: true, owner: "Tyson", step: "simplify" },
         { text: "Slack DMs when you're mentioned in Apex", done: true, owner: "Tyson", step: "automate" },
-        { text: "Move the master parts list into Apex and retire the Google sheet", done: false, owner: "Tyson", step: "delete" },
+        { text: "Move the master parts list into Apex and retire the Google sheet", done: true, owner: "Tyson", step: "delete" },
         { text: "Auto-generated reports for final project meetings", done: false, owner: "Tyson", step: "automate" },
         { text: "Client portal: live project status, timeline and documents from the source of truth", done: false, owner: "Tyson", step: "delete" },
         { text: "Support history in Apex: every product and project on each client's record", done: false, owner: "Tyson", step: "simplify" }
@@ -434,6 +435,9 @@ window.BLACKOPS = {
         { label: "Contract paperwork", value: "Off PandaDoc", detail: "Contracts and change orders fully in Apex; proposals stay in PandaDoc for now.", state: "met" },
         { label: "Black Ops template", value: "~50%", detail: "Lighting halfway, distributed still to go. Wrap targeted this week.", state: "on" },
         { label: "Estimating speed", value: "2 clicks → 90%", detail: "Room packages make a multi-room estimate mostly automatic.", state: "pending" },
+        { label: "People in Apex each week", value: "52", detail: "Week of 28 Sep, about 5,000 page views. Steady at 47 to 52 a week since late August.", state: "on" },
+        { label: "Parts list owned by Apex", value: "49,086 products", detail: "Pricing moved off the Google sheet on 30 Sep; 47,564 of them also sync to the Shopify store.", state: "met" },
+        { label: "Support in Apex", value: "7,576 tickets", detail: "Apex's own help desk is built with every Freshdesk ticket imported; the switch from Freshdesk is still ahead.", state: "on" },
         { label: "Release cadence", value: "12 in 10 wks", detail: "Updates shipped in #apex between 22 Jul and 29 Sep.", state: "met" }
       ],
       feedback: {
@@ -556,8 +560,14 @@ window.BLACKOPS = {
         { text: "Go-to 15\" box has no splay option in its tour version", sev: "low" }
       ],
       intel: [
+        { date: "2026-10-02", text: "Overstock goes on sale: 489 items listed on the Shopify store straight from Apex stock.", doc: "Apex database" },
+        { date: "2026-10-01", text: "Shopify web orders now invoice into Sage with card payments and fulfillment tracked, no retyping.", doc: "Apex database" },
+        { date: "2026-09-30", text: "Apex now owns the parts list and pricing for all 49,086 products; the Google sheet is retired as the source. 47,564 products sync to the Shopify store.", doc: "Apex database" },
         { date: "2026-09-29", text: "Shipped: add/alts with linked reductions now export correctly in subtotal pricing and Exhibit A, fixed the same day Seth reported it.", slack: "p1790704433475359", ch: "apex" },
+        { date: "2026-09-28", text: "52 people used Apex this week, about 5,000 page views.", doc: "Apex database" },
         { date: "2026-09-28", text: "Apex server memory upgraded, with a few minutes of interruption.", slack: "p1790618803862819", ch: "apex" },
+        { date: "2026-09-25", text: "Service & Support built into Apex as Summit's own help desk, replacing Freshdesk. All 7,576 Freshdesk tickets and 39,821 messages imported; the switch is still ahead.", doc: "Apex database" },
+        { date: "2026-09-25", text: "Vendor price lists can be sent straight into Apex for review (17 so far), and product moved between projects posts its cost to Sage (302 transfers).", doc: "Apex database" },
         { date: "2026-09-23", text: "Shipped: pick and order the cards on your home dashboard.", slack: "p1790173585388799", ch: "apex" },
         { date: "2026-09-22", text: "Area vs. location model confirmed. SEs can override area in a hidden estimate column.", src: "0922" },
         { date: "2026-09-14", text: "Shipped: Slack DMs when you're mentioned, five days after Jeremy asked for it.", slack: "p1789389624001999", ch: "apex" },

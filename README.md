@@ -105,7 +105,7 @@ not the app).
 
 A scheduled Claude session runs every weekday at about 6:45 AM Central and follows
 `ops/daily-update.md`: it reads new posts in #project_black_ops and #apex, new Black Ops meeting
-notes in ClickUp, and Topo's release board (the Topo2 Supabase project, read only), updates
+notes in ClickUp, what was built in Apex (its Supabase migrations and weekly users) and Topo's release board (the Topo2 Supabase project), both read only, updates
 `data.js`, runs `node scripts/check-data.cjs`, commits, pushes and republishes the page.
 `SYNC` in `data.js` records how far each source has been read. Edit the runbook to change the rules.
 
