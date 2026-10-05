@@ -4,7 +4,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 rm -rf dist && mkdir -p dist/assets
-cp data.js app.js dist/
+cp data.js app.js motion.js dist/
+mkdir -p dist/vendor && cp vendor/lenis.min.js dist/vendor/
 cp assets/* dist/assets/
 python3 - <<'PY'
 import re

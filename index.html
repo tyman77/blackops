@@ -493,6 +493,88 @@ html footer, html .dossier { background-image: var(--topo, none); background-siz
   .who { grid-column: 2; padding-top: 0; }
   .sec { padding-block: 64px 16px; }
 }
+/* ---------- scroll motion (motion.js adds .motion; nothing here applies without it) ---------- */
+html.lenis, html.lenis body { height: auto; }
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+.lenis [data-lenis-prevent], .lenis [data-lenis-prevent-horizontal] { overscroll-behavior: contain; }
+.alti, .climb { display: none; }
+
+/* hero: the light comes on, the title rises; scrolling pushes into the mountain */
+html.motion .hero .summit-frame { translate: 0 calc(var(--h, 0) * 12%); scale: calc(1 + var(--h, 0) * .28); transform-origin: 62% 26%; animation: heroImg 2.6s var(--ease) .1s backwards; will-change: translate, scale; }
+html.motion .hero #stage { opacity: calc(1 - var(--h, 0) * .8); }
+html.motion .hero .summit-light { opacity: calc(1 - var(--h, 0) * 1.3); animation: lightOn 2.2s ease .3s backwards; }
+html.motion .hero h1 .h-a, html.motion .hero h1 b { display: inline-block; will-change: translate; }
+html.motion .hero h1 .h-a { translate: calc(var(--h, 0) * -24vw) 0; animation: heroIn 1.6s var(--ease) .35s backwards; }
+html.motion .hero h1 b { translate: calc(var(--h, 0) * 24vw) 0; animation: heroIn 1.6s var(--ease) .5s backwards; }
+html.motion .hero-side { translate: 0 calc(var(--h, 0) * -70px); opacity: calc(1 - var(--h, 0) * 1.7); animation: fadeUp 1.4s var(--ease) .8s backwards; }
+@keyframes heroImg { from { opacity: 0; scale: 1.12; filter: blur(14px); } }
+@keyframes lightOn { from { opacity: 0; } }
+@keyframes heroIn { from { opacity: 0; transform: translateY(45%); filter: blur(12px); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } }
+
+/* section titles rise out of a mask */
+html.motion .sec-head h2.rise .wm { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .06em; margin-bottom: -.06em; }
+html.motion .sec-head h2.rise .wm > span { display: inline-block; transform: translateY(105%) rotate(4deg); transform-origin: 0 100%; transition: transform 1.25s var(--ease); }
+html.motion .sec-head h2.rise.in .wm > span { transform: none; }
+
+/* cards, rows and panels rise in */
+html.motion .rv { opacity: 0; transform: translateY(40px); }
+html.motion .rv.in { opacity: 1; transform: none; transition: opacity 1s var(--ease), transform 1.3s var(--ease); }
+html.motion .reel .op.rv { transform: translateY(60px) scale(.96); }
+html.motion .reel .op.rv.in { transform: none; }
+
+/* files pinned on desktop: scrolling down moves the reel sideways */
+html.pin-ops #operations { padding-block: 0; }
+html.pin-ops .ops-pin { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; justify-content: center; padding-top: 64px; }
+html.pin-ops .reel { overflow-x: hidden; scroll-snap-type: none; }
+html.pin-ops #operations .sec-head { margin-bottom: 18px; padding-bottom: 18px; }
+html.pin-ops .reel { padding-bottom: 8px; }
+html.pin-ops .reel-ctrl { margin-top: 8px; }
+@media (max-height: 880px) {
+  html.pin-ops .ops-pin { padding-top: 58px; }
+  html.pin-ops #operations .sec-head h2 { font-size: clamp(44px, 5.5vw, 72px); }
+  html.pin-ops .op { min-height: 0; gap: 14px; }
+  html.pin-ops .op-vision { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  html.pin-ops .op-name { font-size: clamp(44px, 5vw, 68px); }
+}
+html.pin-ops .reel .op { transform: skewX(var(--skew, 0deg)); transform-origin: 50% 100%; }
+html.pin-ops .reel .op.rv { transform: translateY(60px) scale(.96) skewX(var(--skew, 0deg)); }
+html.pin-ops .reel .op.rv.in { transform: skewX(var(--skew, 0deg)); }
+
+/* the Algorithm: a fuse runs through the steps in order */
+.algo.fused { position: relative; }
+.algo.fused::before { content: ""; position: absolute; z-index: 2; left: 0; right: 0; top: -1px; height: 2px; background: var(--white); transform-origin: left; transform: scaleX(var(--fuse, 0)); box-shadow: 0 0 14px rgba(255, 255, 255, .55); }
+.algo.fused::after { content: ""; position: absolute; z-index: 3; top: -4px; left: calc(var(--fuse, 0) * 100%); width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--white); box-shadow: 0 0 10px 3px rgba(255, 255, 255, .7), 0 0 34px 8px rgba(255, 255, 255, .25); opacity: calc(var(--fuse, 0) * 30); }
+.algo.fused .step { opacity: .22; transition: opacity .8s var(--ease), background .8s var(--ease); }
+.algo.fused .step.lit { opacity: 1; background: radial-gradient(ellipse 90% 55% at 50% 0%, rgba(255, 255, 255, .06), transparent 70%), var(--black); }
+
+/* timeline bars draw in */
+html.motion .tl.draw .seg { clip-path: inset(0 100% 0 0); transition: clip-path 1.2s var(--ease), border-color .2s; transition-delay: calc(var(--i, 0) * 110ms + 150ms), 0s; }
+html.motion .tl.drawn .seg { clip-path: inset(0 0 0 0); }
+html.motion .tl.draw .today { opacity: 0; transition: opacity .8s ease 1s; }
+html.motion .tl.drawn .today { opacity: 1; }
+
+/* the footer wordmark fills with light */
+html.motion .big-foot .bf-a { background: linear-gradient(90deg, #fff var(--fill, 0%), rgba(255, 255, 255, 0) calc(var(--fill, 0%) + 6%)); -webkit-background-clip: text; background-clip: text; }
+
+/* altimeter */
+html.motion .alti { position: fixed; z-index: 20; right: 14px; top: 50%; transform: translateY(-50%); display: grid; justify-items: center; gap: 12px; pointer-events: none;
+  font: 500 9px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--gray); }
+.alti-top, .alti-read { writing-mode: vertical-rl; }
+.alti-top, .alti-read { transition: color .4s; }
+.alti-scale { position: relative; width: 10px; height: 34vh; border-left: 1px solid var(--line-2);
+  background: repeating-linear-gradient(to top, var(--line-2) 0 1px, transparent 1px calc(100% / 14)) left / 6px 100% no-repeat; }
+.alti-mark { position: absolute; left: -1px; bottom: calc(var(--p, 0) * 100%); width: 16px; height: 1px; background: var(--white); box-shadow: 0 0 8px rgba(255, 255, 255, .8); }
+.alti-scale::after { content: ""; position: absolute; left: -1px; bottom: 0; width: 1px; height: calc(var(--p, 0) * 100%); background: var(--white); }
+.alti-read { color: var(--white); font-variant-numeric: tabular-nums; min-height: 9ch; }
+.alti.top .alti-top { color: var(--white); text-shadow: 0 0 10px rgba(255, 255, 255, .7); }
+@media (max-width: 900px) { html.motion .alti { display: none; } }
+@media (max-width: 640px) {
+  html.motion .climb { display: block; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--white); transform-origin: left; transform: scaleX(0); box-shadow: 0 0 8px rgba(255, 255, 255, .6); }
+  html.motion .hero h1 .h-a { translate: calc(var(--h, 0) * -40vw) 0; }
+  html.motion .hero h1 b { translate: calc(var(--h, 0) * 40vw) 0; }
+}
+
 /* ---------- phone (iPhone) layout ---------- */
 html { -webkit-text-size-adjust: 100%; }
 * { -webkit-tap-highlight-color: transparent; }
@@ -620,7 +702,13 @@ html { -webkit-text-size-adjust: 100%; }
     <span class="clock num" id="clock"></span>
     <button class="search" id="openPalette" type="button" aria-label="Search operations"><svg class="search-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span class="lbl">Search</span><kbd>⌘K</kbd></button>
   </div>
+  <i class="climb" id="climb" aria-hidden="true"></i>
 </header>
+<div class="alti" id="alti" aria-hidden="true">
+  <span class="alti-top">Summit</span>
+  <div class="alti-scale"><i class="alti-mark" id="altiMark"></i></div>
+  <span class="alti-read num" id="altiRead">0 ft</span>
+</div>
 
 <section class="hero" aria-label="Command briefing">
   <div class="summit-light" id="summitLight" aria-hidden="true"></div>
@@ -628,7 +716,7 @@ html { -webkit-text-size-adjust: 100%; }
   <div class="coord l">OBJ-00 / THE SUMMIT<br>LIGHT SOURCE: 1</div>
   <div class="coord r" id="asof"></div>
   <div class="hero-copy gutter">
-    <h1>Black<br><b>Ops</b></h1>
+    <h1><span class="h-a">Black</span><br><b>Ops</b></h1>
     <div class="hero-side">
       <p id="mandate"></p>
       <div class="kpis" id="kpis"></div>
@@ -637,18 +725,20 @@ html { -webkit-text-size-adjust: 100%; }
 </section>
 
 <section class="sec" id="operations" aria-label="Operations">
+  <div class="ops-pin">
   <div class="sec-head gutter" style="margin-inline:clamp(16px,4vw,56px);padding-inline:0">
     <div><div class="label">Index / Operations</div><h2>The files</h2></div>
     <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
   </div>
   <div class="reel-wrap">
-    <div class="reel" id="reel" tabindex="0" aria-label="Operations, scroll sideways"></div>
+    <div class="reel" id="reel" data-lenis-prevent-horizontal tabindex="0" aria-label="Operations, scroll sideways"></div>
     <div class="reel-ctrl gutter">
       <button id="prev" type="button" aria-label="Previous operations">←</button>
       <button id="next" type="button" aria-label="Next operations">→</button>
       <div class="scrub"><i id="scrub"></i></div>
       <span class="label num" id="reelCount"></span>
     </div>
+  </div>
   </div>
 </section>
 
@@ -657,7 +747,7 @@ html { -webkit-text-size-adjust: 100%; }
     <div><div class="label">Operating framework</div><h2>The Algorithm</h2></div>
     <div class="label" id="algoRule"></div>
   </div>
-  <div class="algo" id="algo"></div>
+  <div class="algo" id="algo" data-lenis-prevent-horizontal></div>
   <p class="algo-src label" id="algoSrc"></p>
 </section>
 
@@ -677,7 +767,7 @@ html { -webkit-text-size-adjust: 100%; }
     <div><div class="label">Campaign timeline</div><h2>Phases in motion</h2></div>
     <div class="label">Filled = complete · Split = in progress · Striped = live, ongoing</div>
   </div>
-  <div class="tl-scroll"><div class="tl" id="tl"></div></div>
+  <div class="tl-scroll" data-lenis-prevent-horizontal><div class="tl" id="tl"></div></div>
   <div class="tl-list" id="tlList"></div>
 </section>
 
@@ -707,7 +797,7 @@ html { -webkit-text-size-adjust: 100%; }
   <a href="#intel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Intel</span></a>
 </nav>
 
-<div class="dossier" id="dossier" role="dialog" aria-modal="true" aria-label="Operation file" aria-hidden="true">
+<div class="dossier" id="dossier" data-lenis-prevent role="dialog" aria-modal="true" aria-label="Operation file" aria-hidden="true">
   <div class="d-bar gutter">
     <span class="label" id="dFile"></span>
     <div class="d-nav">
@@ -734,12 +824,14 @@ html { -webkit-text-size-adjust: 100%; }
 <div class="pal-scrim" id="palScrim" hidden>
   <div class="pal" role="dialog" aria-label="Search">
     <input id="palInput" type="text" placeholder="Search operations, people…" autocomplete="off" aria-label="Search">
-    <ul id="palList" role="listbox"></ul>
+    <ul id="palList" role="listbox" data-lenis-prevent></ul>
     <div class="pal-foot label"><span>↑↓ move</span><span>↵ open</span><span>esc close</span></div>
   </div>
 </div>
 
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="motion.js"></script>
 </body>
 </html>

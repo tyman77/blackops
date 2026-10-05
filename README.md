@@ -71,6 +71,15 @@ Supabase token to `/api/auth/session`, which confirms the user with Supabase, ch
 Environment variables (Vercel): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ALLOWED_DOMAIN`, `AUTH_SECRET`.
 Changing `AUTH_SECRET` signs everyone out.
 
+## Motion
+
+`motion.js` adds the scroll motion on top of the page: smooth wheel scrolling on desktop
+([Lenis](https://github.com/darkroomengineering/lenis), MIT, vendored in `vendor/`), an
+altimeter that climbs to the summit as you scroll, the hero pushing into the mountain, the files
+pinning and sliding sideways, titles rising out of a mask, a fuse that lights the Algorithm steps
+in order, timeline bars drawing in, and the footer wordmark filling with light. Nothing runs when
+the viewer has Reduce Motion turned on, and the page works the same without the file.
+
 ## On iPhone
 
 The same address works on phones with a layout of its own: sections move to a tab bar at the

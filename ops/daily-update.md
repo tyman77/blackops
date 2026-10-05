@@ -81,7 +81,7 @@ Topo 62% to v1"), then `git push origin claude/black-ops-project-dashboard-l78hi
 1. `./scripts/build-artifact.sh`
 2. Read the live page first with the Artifact tool (`action: "read"`, `url` = `SYNC.artifactUrl`).
 3. Publish with the Artifact tool: `url` = `SYNC.artifactUrl`, `file_path` = `dist/black-ops.html`,
-   `files` = `{ "data.js": "dist/data.js", "app.js": "dist/app.js" }`. Add
+   `files` = `{ "data.js": "dist/data.js", "app.js": "dist/app.js", "motion.js": "dist/motion.js", "vendor/lenis.min.js": "dist/vendor/lenis.min.js" }`. Add
    `"assets/summit.jpg": "dist/assets/summit.jpg"` only if that image changed.
 
 ## 6. Summary

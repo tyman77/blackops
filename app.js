@@ -310,7 +310,8 @@
     filter = b.dataset.f;
     renderFilters();
     renderReel();
-    reel.scrollTo({ left: 0 });
+    if (pinned()) scrollTo({ top: $("#operations").offsetTop });
+    else reel.scrollTo({ left: 0 });
   });
 
   function ticks(p) {
@@ -359,8 +360,9 @@
     if (c && !c.contains(e.relatedTarget)) scramble($(".op-name", c));
   });
   // vertical wheel scrolls the reel sideways until it hits either end
+  const pinned = () => document.documentElement.classList.contains("pin-ops");
   reel.addEventListener("wheel", (e) => {
-    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || e.shiftKey) return;
+    if (pinned() || Math.abs(e.deltaY) <= Math.abs(e.deltaX) || e.shiftKey) return;
     const max = reel.scrollWidth - reel.clientWidth;
     if (max <= 0) return;
     if ((reel.scrollLeft <= 0 && e.deltaY < 0) || (reel.scrollLeft >= max - 1 && e.deltaY > 0)) return;
@@ -371,8 +373,11 @@
   addEventListener("resize", updateScrub);
 
   const step = () => { const c = $(".op", reel); return c ? c.getBoundingClientRect().width + 20 : 400; };
-  $("#prev").addEventListener("click", () => reel.scrollBy({ left: -step(), behavior: reduced ? "auto" : "smooth" }));
-  $("#next").addEventListener("click", () => reel.scrollBy({ left: step(), behavior: reduced ? "auto" : "smooth" }));
+  const nudge = (d) => pinned()
+    ? scrollBy({ top: d * step(), behavior: reduced ? "auto" : "smooth" })
+    : reel.scrollBy({ left: d * step(), behavior: reduced ? "auto" : "smooth" });
+  $("#prev").addEventListener("click", () => nudge(-1));
+  $("#next").addEventListener("click", () => nudge(1));
 
   function updateScrub() {
     const s = $("#scrub");
