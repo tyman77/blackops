@@ -57,7 +57,7 @@ window.BLACKOPS = {
       meetingTitle: "Project Black Ops Updates",
       knownDocs: ["2ky3v16t-230833", "2ky3v16t-252413", "2ky3v16t-263493"]
     },
-    topo: { url: null, lastChecked: null },
+    topo: { supabaseProject: "gspsywhthostnwjcfvcf", lastChecked: "2026-10-04", lastChange: "2026-09-21" },
     artifactUrl: "https://claude.ai/artifact/U8bbbfWX9r1bpVV3iHyZJw"
   },
 
@@ -338,7 +338,7 @@ window.BLACKOPS = {
       ],
       plan: {
         title: "Road to v1",
-        source: "Topo Release Plan, as of about 25 Sep 2026",
+        source: "Topo release board (Topo2 database), checked 04 Oct 2026; last change 21 Sep",
         stats: [
           { v: "240 h", l: "Left to v1" },
           { v: "6.0 wk", l: "Working weeks" },

@@ -26,10 +26,38 @@ Open threads that have replies. Look at attached screenshots when a message depe
 "Project Black Ops Updates - MM/DD/YYYY". Any doc id not in `knownDocs` is new. Read its
 summary page (not the transcript unless something is unclear).
 
-**Topo progress** (`SYNC.topo.url`): if the url is set, open it and read the release plan
-headline numbers (hours left to v1, working weeks, % done by hours, items done, ready for
-review, blocked) and the per-workstream hours left / total. If the url is null, skip this
-step and say so in the summary.
+**Topo progress** (`SYNC.topo`): read the release board straight from the Topo2 Supabase
+project (`SYNC.topo.supabaseProject`) with the Supabase connector's `execute_sql`. Read only;
+never write to it. The release plan PDF is printed from these same tables.
+
+```sql
+-- headline numbers: v1 scope, cut items excluded
+select status, count(*) n, sum(hours) h
+from topo_release_items where release = 'v1' and status <> 'cut' group by status;
+-- per workstream
+select area, sum(hours) filter (where status <> 'done') left_h, sum(hours) total_h
+from topo_release_items where release = 'v1' and status <> 'cut' group by area;
+-- parked past v1
+select release, sum(hours) h from topo_release_items
+where release in ('later', 'maybe') and status <> 'cut' group by release;
+-- has anything moved?
+select max(updated_at) from topo_release_items;
+```
+
+How the numbers map onto the TOPO `plan`:
+- Left to v1 = hours of `todo` + `review` + `blocked`. Working weeks = left / 40.
+- Done by hours = `done` hours / (`done` + left). Items done = `done` count / all four counts.
+- Ready for review = `review` count and hours. Blocked on someone = `blocked` count.
+- Streams: one per area, dropping the number prefix ("01 Schematic" is "Schematic"). Fold
+  "06 Rack elevations" into "Racks" and the three app areas into "iOS / Android / Mac apps".
+- Parked = `later` + `maybe` hours; the `maybe` hours are the conditional part.
+
+If `max(updated_at)` is not newer than `SYNC.topo.lastChange`, nothing moved: only set
+`SYNC.topo.lastChecked` and the plan `source` date. Otherwise update the stats, streams, parked
+note and `source`, the percentages in TOPO's objective text, its "Progress to v1" and "Time left to
+v1" outcomes, add one intel entry with `doc: "Topo release board"`, and set `lastChange`.
+The workstream reports in `topo_release_areas.last_report` explain what moved; use them for the
+intel text in plain words, never pasted.
 
 If a source can't be reached, don't guess. Skip it, leave its cursor where it was, and say
 which source failed in the summary.
