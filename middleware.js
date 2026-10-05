@@ -3,11 +3,13 @@
 import { next } from "@vercel/functions";
 import { COOKIE, readCookie, verify } from "./lib/session.js";
 
-const PUBLIC = ["/login", "/login.html", "/auth/callback", "/auth/callback.html", "/api/auth/session", "/api/auth/logout", "/assets/summit.jpg", "/favicon.ico", "/robots.txt"];
+const PUBLIC = ["/login", "/login.html", "/auth/callback", "/auth/callback.html", "/api/auth/session", "/api/auth/logout", "/assets/summit.jpg", "/favicon.ico", "/robots.txt", "/manifest.webmanifest"];
+// Home Screen icons: iOS fetches these without the session cookie
+const PUBLIC_DIRS = ["/icons/"];
 
 export default async function middleware(request) {
   const url = new URL(request.url);
-  if (PUBLIC.includes(url.pathname)) return next();
+  if (PUBLIC.includes(url.pathname) || PUBLIC_DIRS.some((d) => url.pathname.startsWith(d))) return next();
 
   const email = await verify(readCookie(request, COOKIE), process.env.AUTH_SECRET, process.env.ALLOWED_DOMAIN);
   if (email) return next({ headers: { "x-blackops-user": email } });

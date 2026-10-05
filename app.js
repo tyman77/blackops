@@ -207,6 +207,35 @@
     } catch (e) { /* texture is decorative */ }
   })();
 
+  // On phones the five steps become a swipeable row; these tabs jump between them and
+  // show which step is in view. Hidden on wider screens by CSS.
+  const stepCounts = (objs) => ALGO.steps.map((st) => {
+    const list = objs.filter((o) => o.step === st.key);
+    return [list.filter((o) => o.done).length, list.length];
+  });
+  function snapTabs(row, counts) {
+    if (!row) return;
+    const steps = [...row.querySelectorAll(".step")];
+    const bar = document.createElement("div");
+    bar.className = "snap-tabs";
+    bar.setAttribute("role", "group");
+    bar.setAttribute("aria-label", "Algorithm steps");
+    bar.innerHTML = ALGO.steps.map((st, i) => `<button type="button" data-i="${i}" aria-label="${esc(st.name)}"><span>${SHORT[st.key] || st.name}</span><b class="num">${counts[i][0]}/${counts[i][1]}</b></button>`).join("");
+    row.before(bar);
+    const btns = [...bar.children];
+    const mark = () => {
+      const w = steps[0] ? steps[0].getBoundingClientRect().width + 10 : 1;
+      const at = Math.min(steps.length - 1, Math.round(row.scrollLeft / w));
+      btns.forEach((b, i) => b.classList.toggle("on", i === at));
+    };
+    bar.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-i]");
+      if (b) row.scrollTo({ left: steps[+b.dataset.i].offsetLeft - steps[0].offsetLeft, behavior: reduced ? "auto" : "smooth" });
+    });
+    row.addEventListener("scroll", () => requestAnimationFrame(mark), { passive: true });
+    mark();
+  }
+
   // ---------- the algorithm ----------
   (function algorithm() {
     const el = $("#algo");
@@ -231,6 +260,7 @@
       </div>`;
     }).join("");
     el.addEventListener("click", (e) => { const b = e.target.closest("[data-op]"); if (b) openFile(b.dataset.op, b); });
+    snapTabs(el, stepCounts(moves));
   })();
 
   function algoStrip(op) {
@@ -471,6 +501,26 @@
     const tl = $("#tl");
     tl.innerHTML = html;
     tl.addEventListener("click", (e) => { const r = e.target.closest("[data-op]"); if (r) openFile(r.dataset.op, r); });
+    // phones get a list of phases per operation instead of the wide chart
+    const list = $("#tlList");
+    if (list) {
+      list.innerHTML = `<p class="label tl-asof">As of ${fmt(D.asOf)} · tap an operation to open its file</p>` + OPS.map((op) => `
+        <button class="tlc" type="button" data-op="${op.id}">
+          <span class="tlc-h"><span class="c">${esc(op.codename)}</span><span class="t">${esc(op.title)}</span></span>
+          <ol>${(op.phases || []).map((p) => {
+            const s = date(p.start), e = date(p.end);
+            let cls = "next", state = "Next", bar = "";
+            if (p.ongoing) { cls = "ongoing"; state = "Live"; }
+            else if (e < AS_OF || op.status === "complete") { cls = "done"; state = "Done"; }
+            else if (s <= AS_OF) {
+              const pc = Math.round(clamp((AS_OF - s) / (e - s)) * 100);
+              cls = "now"; state = `${pc}%`; bar = `<span class="bar" aria-hidden="true"><i style="width:${pc}%"></i></span>`;
+            }
+            return `<li class="${cls}"><span class="dot" aria-hidden="true"></span><span class="n">${esc(p.name)}</span><span class="s">${state}</span><span class="d">${p.ongoing ? `Since ${fmt(p.start)}, ongoing` : `${fmt(p.start)} – ${fmt(p.end)}`}</span>${bar}</li>`;
+          }).join("")}</ol>
+        </button>`).join("");
+      list.addEventListener("click", (e) => { const r = e.target.closest("[data-op]"); if (r) openFile(r.dataset.op, r); });
+    }
     // start scrolled so today sits near the left third
     const sc = tl.parentElement;
     requestAnimationFrame(() => { sc.scrollLeft = Math.max(0, (tl.scrollWidth - 200) * (pos(AS_OF) / 100) - sc.clientWidth * 0.35); });
@@ -647,6 +697,7 @@
       </div>
       ${feedbackHTML(op.feedback)}`;
 
+    snapTabs($(".algo.mine", dossier), stepCounts(op.objectives || []));
     $("#cursor").classList.remove("big");
     if (!dossier.classList.contains("on")) {
       dossier.classList.add("on");
@@ -763,7 +814,7 @@
   })();
 
   // ---------- nav highlight ----------
-  const links = [...document.querySelectorAll(".links a")];
+  const links = [...document.querySelectorAll(".links a, .tabbar a")];
   const navObs = new IntersectionObserver((ents) => {
     ents.forEach((en) => {
       if (en.isIntersecting) links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${en.target.id}`));

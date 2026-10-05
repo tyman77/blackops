@@ -71,6 +71,17 @@ Supabase token to `/api/auth/session`, which confirms the user with Supabase, ch
 Environment variables (Vercel): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ALLOWED_DOMAIN`, `AUTH_SECRET`.
 Changing `AUTH_SECRET` signs everyone out.
 
+## On iPhone
+
+The same address works on phones with a layout of its own: sections move to a tab bar at the
+bottom, the files stack vertically, the Algorithm steps swipe sideways with tabs to jump between
+them, the timeline becomes a phase list, and a file's Prev / Close / Next sit at the bottom.
+
+To install it: open https://blackops.summitintegrated.com in Safari, tap Share, then
+**Add to Home Screen**. It opens full screen with the mountain icon. The Home Screen app keeps its
+own sign-in, so sign in once inside it with **Continue with Google** (emailed links open in Safari,
+not the app).
+
 ## Daily updates
 
 A scheduled Claude session runs every weekday at about 6:45 AM Central and follows
