@@ -39,7 +39,7 @@ window.BLACKOPS = {
       { key: "automate", name: "Automate", line: "Last, not first. Let software do what is now simple and proven." }
     ]
   },
-  asOf: "2026-09-25",
+  asOf: "2026-10-04",
 
   // hero art: a mountain image. A light background is removed automatically.
   HERO_IMAGE: "assets/summit.jpg",
@@ -47,10 +47,10 @@ window.BLACKOPS = {
   // Where the daily update run reads from, and how far it has read. See ops/daily-update.md.
   // The run advances these after each sync so nothing is added twice.
   SYNC: {
-    lastRun: "2026-09-25",
+    lastRun: "2026-10-04",
     slack: {
-      blackops: { channelId: "C0BTG1DMRRN", lastTs: "1790338823.956439" },
-      apex: { channelId: "C0B64PRPUUD", lastTs: "1790288747.127679" }
+      blackops: { channelId: "C0BTG1DMRRN", lastTs: "1790619358.094959" },
+      apex: { channelId: "C0B64PRPUUD", lastTs: "1790978030.863169" }
     },
     clickup: {
       workspaceId: "90131236057",
@@ -157,6 +157,8 @@ window.BLACKOPS = {
         { text: "Off-the-shelf Cat-to-XLR systems (Catalyst, Whirlwind CATMASTER) already exist; build must beat buy", sev: "low" }
       ],
       intel: [
+        { date: "2026-09-28", text: "Tyson pointed Adam to the pin-1 problem (Neil Muncy) and the AC0.2 rack grounding schemes for the grounding research.", slack: "p1790619358094959" },
+        { date: "2026-09-25", text: "Wire labeling rework proposed: source/destination and color-coded labels so rack rooms sort by color. Adam wants to test a $200 zero-ink printer; the team requires self-laminating labels, and labels should come from Topo eventually.", slack: "p1790353152530219" },
         { date: "2026-09-22", text: "PCBs for analog over shielded Cat6 arrived. Back boxes ordered with Lex; W1 Medusa 12-XLR breakout ordered for testing.", src: "0922" },
         { date: "2026-09-17", text: "Patent searches (Google Patents, Justia, USPTO) found nothing covering Catalyst's shielded Cat6 + XLR breakout system.", slack: "p1789671009172399" },
         { date: "2026-09-09", text: "Parts and PCBs ordered for the first audio-over-Cat tests.", slack: "p1788984673400829" },
@@ -215,6 +217,7 @@ window.BLACKOPS = {
         { text: "Converter options (3G, 12G, none) multiplying TV kit SKUs", sev: "low" }
       ],
       intel: [
+        { date: "2026-09-25", text: "Ryan asked Apex to carry the Summit TV wall-mount kit (part 8237, about $24) and a 1-gang TV I/O plate as required accessories on every TV mount, so the warehouse pulls kits automatically. Travis pushed back on a custom plate for every TV; a meeting is set to decide.", slack: "p1790372586349839", ch: "apex" },
         { date: "2026-09-24", text: "Adam, Ryan, Ben and Hal proposed what Assembly can take on: plug-and-play FOH racks, selective rack whips, accessory and manual packs, ladder tray. Tyson: “This all sounds fantastic.”", slack: "p1790279093011569" },
         { date: "2026-09-22", text: "[[Flatirons]] picked to pilot area-based re-inventory and palletization. Assembly label already prints area.", src: "0922" },
         { date: "2026-09-22", text: "TV kit contents defined; Rachel made Summit-branded stickers so kits ship as a finished product.", src: "0922" },
@@ -274,6 +277,7 @@ window.BLACKOPS = {
         { text: "AR measurement accuracy unproven", sev: "low" }
       ],
       intel: [
+        { date: "2026-09-28", text: "Flight Plan now runs company capacity planning, replacing Planview. Engineering placeholder hours tied to the sales pipeline are the next addition.", doc: "Capacity & Revenue Strategy, 28 Sep" },
         { date: "2026-09-24", text: "Proposal: ladder tray goes in at the start of the wire-pull trip, with standard packages by rack count and engineer-drawn layouts.", slack: "p1790279093011569" },
         { date: "2026-09-22", text: "Flight Plan adopted as the source of truth for install scheduling. [[Evangel Temple]] lined up for a 2–3 person pre-wire trip.", src: "0922" },
         { date: "2026-09-08", text: "Pre-made wire-rope slings replace cut chain; aircraft cable and swaging being phased out. Supply accounts opened.", src: "0908" },
@@ -371,6 +375,7 @@ window.BLACKOPS = {
         { text: "The release work (training, a real job, field use) is where tools fail; 22 of its 23 hours are still ahead", sev: "med" }
       ],
       intel: [
+        { date: "2026-09-28", text: "Leadership confirmed hiring a dedicated Topo team. Capacity planning expects Topo to free engineering hours; the size of the savings is still to be modeled.", doc: "Capacity & Revenue Strategy, 28 Sep" },
         { date: "2026-09-25", text: "Release plan: 240 h left to v1, about 6 working weeks. 60% done by hours, 441 of 527 items closed, 11 blocked.", doc: "Topo Release Plan" },
         { date: "2026-09-24", text: "Tyson flagged MxU teasing browser-based system maps for churches: “Everyone is doing it.”", slack: "p1790274137085339" },
         { date: "2026-09-22", text: "Area comes from estimates; Topo will backfill room-level location later.", src: "0922" },
@@ -429,12 +434,13 @@ window.BLACKOPS = {
         { label: "Contract paperwork", value: "Off PandaDoc", detail: "Contracts and change orders fully in Apex; proposals stay in PandaDoc for now.", state: "met" },
         { label: "Black Ops template", value: "~50%", detail: "Lighting halfway, distributed still to go. Wrap targeted this week.", state: "on" },
         { label: "Estimating speed", value: "2 clicks → 90%", detail: "Room packages make a multi-room estimate mostly automatic.", state: "pending" },
-        { label: "Release cadence", value: "11 in 9 wks", detail: "Updates announced in #apex between 22 Jul and 24 Sep.", state: "met" }
+        { label: "Release cadence", value: "12 in 10 wks", detail: "Updates shipped in #apex between 22 Jul and 29 Sep.", state: "met" }
       ],
       feedback: {
         since: "2026-07-22",
-        until: "2026-09-24",
+        until: "2026-10-02",
         shipped: [
+          { date: "2026-09-29", text: "Linked reductions on add/alts export correctly (subtotal pricing and Exhibit A)", slack: "p1790704433475359" },
           { date: "2026-09-23", text: "Pick and order the cards on your home dashboard", slack: "p1790173585388799" },
           { date: "2026-09-18", text: "Create pricing straight from a lead card", slack: "p1789741581312089" },
           { date: "2026-09-16", text: "“Just Signed” celebration when a contract comes back", slack: "p1789581035322089" },
@@ -449,6 +455,15 @@ window.BLACKOPS = {
         ],
         // kind: feature | bug | access (permissions, accounts, imports, how-to)
         asks: [
+          { date: "2026-10-02", who: "Seth Thiesen", theme: "Order sheets & warehouse", kind: "feature", text: "Show the project team at the top of an order sheet so anyone can see who has answers", slack: "p1790978030863169" },
+          { date: "2026-10-02", who: "Ryan Lynette", theme: "Order sheets & warehouse", kind: "feature", text: "Group-by and sort-by options in the order sheet Units view", slack: "p1790975324431349" },
+          { date: "2026-09-29", who: "Seth Thiesen", theme: "Parts lists & pricing", kind: "bug", text: "Subtotal pricing export itemizes linked deducts on add/alts; Exhibit A misses linked reductions", slack: "p1790704433475359", answered: "2026-09-29" },
+          { date: "2026-09-29", who: "Seth Thiesen", theme: "Order sheets & warehouse", kind: "feature", text: "A ship-to-client signature form when gear goes to a client early", slack: "p1790694309945779" },
+          { date: "2026-09-28", who: "Bishop Franklin", theme: "Access & admin", kind: "access", text: "Add a new team member whose Google sign-in failed", slack: "p1790628273709799" },
+          { date: "2026-09-28", who: "Cameron Fries", theme: "Parts lists & pricing", kind: "feature", text: "“Revert to last approved” should restore the approved status too", slack: "p1790620722527049" },
+          { date: "2026-09-28", who: "Cameron Fries", theme: "Notifications & comments", kind: "feature", text: "Grey out the comment icon once a parts-list comment is resolved", slack: "p1790617492857829" },
+          { date: "2026-09-25", who: "Ryan Lynette", theme: "Parts lists & pricing", kind: "feature", text: "TV wall-mount kit (8237) and a 1-gang TV I/O plate as required accessories on every TV mount", slack: "p1790372586349839" },
+          { date: "2026-09-25", who: "David Forman", theme: "Integrations", kind: "feature", text: "A new project ID creates its Google Drive folder automatically", slack: "p1790356102783069" },
           { date: "2026-09-24", who: "Matthew Kinney", theme: "Client portal", kind: "feature", text: "Viewer role on the client side for support", slack: "p1790288747127679" },
           { date: "2026-09-24", who: "Chase McCall", theme: "Leads & reporting", kind: "feature", text: "One place to fix a lead's address; bad addresses are raising freight costs", slack: "p1790287266557059" },
           { date: "2026-09-24", who: "John Clark", theme: "Contracts & change orders", kind: "bug", text: "Contract emails greet the church's name, not the client's (“Hi Plum,”)", slack: "p1790284288222749" },
@@ -533,14 +548,16 @@ window.BLACKOPS = {
         { name: "Live · continuous refinement", start: "2026-08-04", end: "2027-02-26", ongoing: true }
       ],
       risks: [
-        { text: "Nearly every request in #apex is addressed to one person (Tyson); 78 asks in 9 weeks", sev: "high" },
-        { text: "Permissions, accounts and imports keep blocking people: 21 of the 78 asks", sev: "med" },
+        { text: "Nearly every request in #apex is addressed to one person (Tyson); 87 asks in 10 weeks", sev: "high" },
+        { text: "Permissions, accounts and imports keep blocking people: 22 of the 87 asks", sev: "med" },
         { text: "Lead records with wrong addresses and websites are raising freight costs", sev: "med" },
         { text: "SE details lost in free-text notes instead of structured fields", sev: "med" },
         { text: "Breakout choices change amplifier channel use and layouts", sev: "med" },
         { text: "Go-to 15\" box has no splay option in its tour version", sev: "low" }
       ],
       intel: [
+        { date: "2026-09-29", text: "Shipped: add/alts with linked reductions now export correctly in subtotal pricing and Exhibit A, fixed the same day Seth reported it.", slack: "p1790704433475359", ch: "apex" },
+        { date: "2026-09-28", text: "Apex server memory upgraded, with a few minutes of interruption.", slack: "p1790618803862819", ch: "apex" },
         { date: "2026-09-23", text: "Shipped: pick and order the cards on your home dashboard.", slack: "p1790173585388799", ch: "apex" },
         { date: "2026-09-22", text: "Area vs. location model confirmed. SEs can override area in a hidden estimate column.", src: "0922" },
         { date: "2026-09-14", text: "Shipped: Slack DMs when you're mentioned, five days after Jeremy asked for it.", slack: "p1789389624001999", ch: "apex" },
