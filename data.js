@@ -39,7 +39,7 @@ window.BLACKOPS = {
       { key: "automate", name: "Automate", line: "Last, not first. Let software do what is now simple and proven." }
     ]
   },
-  asOf: "2026-10-04",
+  asOf: "2026-10-06",
 
   // hero art: a mountain image. A light background is removed automatically.
   HERO_IMAGE: "assets/summit.jpg",
@@ -47,9 +47,9 @@ window.BLACKOPS = {
   // Where the daily update run reads from, and how far it has read. See ops/daily-update.md.
   // The run advances these after each sync so nothing is added twice.
   SYNC: {
-    lastRun: "2026-10-04",
+    lastRun: "2026-10-06",
     slack: {
-      blackops: { channelId: "C0BTG1DMRRN", lastTs: "1790619358.094959" },
+      blackops: { channelId: "C0BTG1DMRRN", lastTs: "1791212400.746679" },
       apex: { channelId: "C0B64PRPUUD", lastTs: "1790978030.863169" }
     },
     clickup: {
@@ -218,6 +218,7 @@ window.BLACKOPS = {
         { text: "Converter options (3G, 12G, none) multiplying TV kit SKUs", sev: "low" }
       ],
       intel: [
+        { date: "2026-10-05", text: "Truss Tape: receipt paper printed to the width of the pipe with every fixture's position and address. Tape it on, hang each fixture where the tape says, wire it, then address in the air, with no unboxing, labeling or measuring on the floor. Levi and Seth drove it, Daniel printed the first for [[Life.Church MWC]], and Levi is rolling it out on install.", slack: "p1791215452607679" },
         { date: "2026-09-25", text: "Ryan asked Apex to carry the Summit TV wall-mount kit (part 8237, about $24) and a 1-gang TV I/O plate as required accessories on every TV mount, so the warehouse pulls kits automatically. Travis pushed back on a custom plate for every TV; a meeting is set to decide.", slack: "p1790372586349839", ch: "apex" },
         { date: "2026-09-24", text: "Adam, Ryan, Ben and Hal proposed what Assembly can take on: plug-and-play FOH racks, selective rack whips, accessory and manual packs, ladder tray. Tyson: “This all sounds fantastic.”", slack: "p1790279093011569" },
         { date: "2026-09-22", text: "[[Flatirons]] picked to pilot area-based re-inventory and palletization. Assembly label already prints area.", src: "0922" },
@@ -376,6 +377,7 @@ window.BLACKOPS = {
         { text: "The release work (training, a real job, field use) is where tools fail; 22 of its 23 hours are still ahead", sev: "med" }
       ],
       intel: [
+        { date: "2026-10-05", text: "Travis is back on Topo this week after a month deep in project work. Page loads went from 10+ seconds to under one; next is testing every button end to end: importing blocks from Apex, auto-naming, wiring, and fields filling in on the schematics.", slack: "p1791215452607679" },
         { date: "2026-09-28", text: "Leadership confirmed hiring a dedicated Topo team. Capacity planning expects Topo to free engineering hours; the size of the savings is still to be modeled.", doc: "Capacity & Revenue Strategy, 28 Sep" },
         { date: "2026-09-25", text: "Release plan: 240 h left to v1, about 6 working weeks. 60% done by hours, 441 of 527 items closed, 11 blocked.", doc: "Topo Release Plan" },
         { date: "2026-09-24", text: "Tyson flagged MxU teasing browser-based system maps for churches: “Everyone is doing it.”", slack: "p1790274137085339" },
@@ -670,6 +672,7 @@ window.BLACKOPS = {
         { text: "Ongoing AR threads still need a person", sev: "low" }
       ],
       intel: [
+        { date: "2026-10-06", text: "Jacob's plan to automate order tracking in three phases: vendor follow-up from the purchasing inbox first (nudges, escalation, backorder tasks, a morning digest), then tracking numbers verified into Apex with live delivery dates, then client shipping updates that start as drafts Nick approves. Needs a meeting on where the bot runs and who owns it.", slack: "p1791297149095369" },
         { date: "2026-09-22", text: "AI AR emails and nightly bill checks live. Ramp auto-approves clean expenses under $150.", src: "0922" },
         { date: "2026-09-08", text: "Nightly bill review tool built for 500–600 bills a month. Jacob reports ~85% of his work automated.", src: "0908" }
       ]
