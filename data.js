@@ -158,6 +158,7 @@ window.BLACKOPS = {
         { text: "Off-the-shelf Cat-to-XLR systems (Catalyst, Whirlwind CATMASTER) already exist; build must beat buy", sev: "low" }
       ],
       intel: [
+        { date: "2026-10-07", text: "Cameron proposed pricing the Cat6 audio system as one line item (CUSTOM PATCH A for analog or D for digital) in the new template, with Adam working up the cost breakdown.", slack: "p1791397932028329" },
         { date: "2026-10-06", text: "Premade W1 Medusa and Phoenix-to-XLR cables ordered, due next week. The Whirlwind rack-mount back box didn't work out and is going back; ProCraft back boxes ordered instead. W1 and configurable FB boards revised, for Travis to order.", slack: "p1791305193088279" },
         { date: "2026-10-06", text: "Grounding research found no red flags: a grounding plane instead of individual traces resolves the shared-ground concern. The final summary, assembly documentation and white paper are nearly finished. Testing starts when the cables arrive, with Greg and an SA Cameron picks.", slack: "p1791305193088279" },
         { date: "2026-10-06", text: "The zero-ink label printer was a bust (weak color, poor adhesion, clumsy software) and is going back; color label printers at $3,600 are a non-starter. Next idea: wire-label sheets on a standard inkjet, printed in the shop and grouped by the pull.", slack: "p1791305193088279" },
@@ -422,7 +423,7 @@ window.BLACKOPS = {
         { text: "Apex rolled out as the estimating platform", done: true, owner: "Tyson", step: "simplify" },
         { text: "Move contracts and change orders from PandaDoc into Apex", done: true, owner: "Tyson", step: "delete" },
         { text: "Editable Area column in estimates, auto-filled from system name", done: true, owner: "Tyson", step: "automate" },
-        { text: "Black Ops template: lighting (about half done)", done: false, owner: "Cameron", step: "simplify" },
+        { text: "Black Ops template: lighting", done: false, owner: "Cameron", step: "simplify" },
         { text: "Black Ops template: distributed", done: false, owner: "Cameron", step: "simplify" },
         { text: "Review ~12 pricing and efficiency items", done: false, owner: "Cameron & Tyson", step: "question" },
         { text: "Speaker cabling option sets (SC32/SoCo to KCON, NL8 to NL4) with cost comparison", done: false, owner: "Team", step: "simplify" },
@@ -439,7 +440,7 @@ window.BLACKOPS = {
       outcomes: [
         { label: "Estimating platform", value: "Live", detail: "Apex is rolled out and in daily use; refinements ship continuously.", state: "met" },
         { label: "Contract paperwork", value: "Off PandaDoc", detail: "Contracts and change orders fully in Apex; proposals stay in PandaDoc for now.", state: "met" },
-        { label: "Black Ops template", value: "~50%", detail: "Lighting halfway, distributed still to go. Wrap targeted this week.", state: "on" },
+        { label: "Black Ops template", value: "99%", detail: "Audio, video, lighting and distributed AV all updated; in for Tyson's approval and SA review the week of 12 Oct.", state: "on" },
         { label: "Estimating speed", value: "2 clicks → 90%", detail: "Room packages make a multi-room estimate mostly automatic.", state: "pending" },
         { label: "People in Apex each week", value: "52", detail: "Week of 28 Sep, about 5,000 page views. Steady at 47 to 52 a week since late August.", state: "on" },
         { label: "Parts list owned by Apex", value: "49,086 products", detail: "Pricing moved off the Google sheet on 30 Sep; 47,564 of them also sync to the Shopify store.", state: "met" },
@@ -566,6 +567,7 @@ window.BLACKOPS = {
         { text: "Go-to 15\" box has no splay option in its tour version", sev: "low" }
       ],
       intel: [
+        { date: "2026-10-07", text: "New pricing template 99% done and in for approval; Cameron reviews it with the SAs next week. Audio leads with A15 touring boxes; new contingency lines for LED walls, cameras and DMX/power cabling speed up first-pass pricing; distributed AV moves to Visionary D5000 decoders over Cat instead of coax, all-Sonance 70V, Bluesound players, cheaper TV mounts and JBL soundbars instead of Sonos.", slack: "p1791397932028329" },
         { date: "2026-10-02", text: "Overstock goes on sale: 489 items listed on the Shopify store straight from Apex stock.", doc: "Apex database" },
         { date: "2026-10-01", text: "Shopify web orders now invoice into Sage with card payments and fulfillment tracked, no retyping.", doc: "Apex database" },
         { date: "2026-09-30", text: "Apex now owns the parts list and pricing for all 49,086 products; the Google sheet is retired as the source. 47,564 products sync to the Shopify store.", doc: "Apex database" },
