@@ -18,6 +18,7 @@
  * outcomes:   { label, value, detail, state: "met" | "on" | "pending" | "behind" }
  * shift:      optional { from, to }: the change the operation makes, shown with the vision
  * targets:    optional headline goals [{ value, label, detail? }], shown on the card and in the file
+ * promises:   optional [{ title, text }]: what the project changes for the team, listed under the vision in its file
  * intel:      { date, text, src?, slack?, ch?, doc? }  ch: "apex" links to APEX_CHANNEL
  * feedback:   optional channel feedback { since, until, shipped[], asks[{ date, who, theme, kind, text, slack, answered? }] }
  * plan:       optional release plan { title, source, stats[], streams[{ name, left, total, note }], parked }
@@ -39,7 +40,7 @@ window.BLACKOPS = {
       { key: "automate", name: "Automate", line: "Last, not first. Let software do what is now simple and proven." }
     ]
   },
-  asOf: "2026-10-07",
+  asOf: "2026-10-09",
 
   // hero art: a mountain image. A light background is removed automatically.
   HERO_IMAGE: "assets/summit.jpg",
@@ -47,9 +48,9 @@ window.BLACKOPS = {
   // Where the daily update run reads from, and how far it has read. See ops/daily-update.md.
   // The run advances these after each sync so nothing is added twice.
   SYNC: {
-    lastRun: "2026-10-07",
+    lastRun: "2026-10-09",
     slack: {
-      blackops: { channelId: "C0BTG1DMRRN", lastTs: "1791212400.746679" },
+      blackops: { channelId: "C0BTG1DMRRN", lastTs: "1791495207.908369" },
       apex: { channelId: "C0B64PRPUUD", lastTs: "1790978030.863169" }
     },
     clickup: {
@@ -132,7 +133,7 @@ window.BLACKOPS = {
         { text: "Patent check on Catalyst (Venueflex) and similar products: nothing found", done: true, owner: "Tyson & Adam", step: "question" },
         { text: "Test-fit PCB chassis connectors in plates and confirm rear mounting", done: true, owner: "Ben T.", step: "simplify" },
         { text: "Run a 150–200 ft test and validate the W1 Medusa 12-XLR breakout", done: false, owner: "Adam", step: "simplify" },
-        { text: "Research grounding, pin-1, EMI, solder and corrosion standards; write a test plan", done: false, owner: "Adam", step: "question" },
+        { text: "Research grounding, pin-1, EMI, solder and corrosion standards; write a test plan", done: true, owner: "Adam", step: "question" },
         { text: "Build vs. buy standard for RJ45/DB25/XLR breakout assemblies", done: false, owner: "Adam", step: "question" },
         { text: "Enclosed modular 1RU rack unit that looks like a finished product", done: false, owner: "Cameron", step: "simplify" },
         { text: "Pilot the swap from analog to shielded Cat6 on a signed project", done: false, owner: "Cameron", step: "accelerate" },
@@ -152,12 +153,13 @@ window.BLACKOPS = {
         { name: "Field pilot", start: "2026-11-01", end: "2027-01-31" }
       ],
       risks: [
-        { text: "Grounding and pin-1 behaviour that won't show up in a lab test", sev: "high" },
+        { text: "Four channels share one shield, so a fault in one source could degrade the other three; engineers agree it's a fringe case", sev: "low" },
         { text: "EMI, solder type and conductor material affecting signal integrity over time", sev: "med" },
         { text: "Rack unit looking like a bare panel instead of a finished product", sev: "low" },
         { text: "Off-the-shelf Cat-to-XLR systems (Catalyst, Whirlwind CATMASTER) already exist; build must beat buy", sev: "low" }
       ],
       intel: [
+        { date: "2026-10-08", text: "Research published: an executive summary, assembly instructions and test procedures. The breakouts are passive and behave like the legacy system; the one difference is that four channels share a shield, so a fault in one source could affect the other three. Engineers agree that's a fringe case. Material and labor cost analysis sent to Cameron.", slack: "p1791495207908369" },
         { date: "2026-10-07", text: "Cameron proposed pricing the Cat6 audio system as one line item (CUSTOM PATCH A for analog or D for digital) in the new template, with Adam working up the cost breakdown.", slack: "p1791397932028329" },
         { date: "2026-10-06", text: "Premade W1 Medusa and Phoenix-to-XLR cables ordered, due next week. The Whirlwind rack-mount back box didn't work out and is going back; ProCraft back boxes ordered instead. W1 and configurable FB boards revised, for Travis to order.", slack: "p1791305193088279" },
         { date: "2026-10-06", text: "Grounding research found no red flags: a grounding plane instead of individual traces resolves the shared-ground concern. The final summary, assembly documentation and white paper are nearly finished. Testing starts when the cables arrive, with Greg and an SA Cameron picks.", slack: "p1791305193088279" },
@@ -315,22 +317,37 @@ window.BLACKOPS = {
         { value: "50%", label: "less time to build installation drawings" },
         { value: "80%", label: "complete before an engineer starts", detail: "Drawings generate from the Apex parts list, so engineering starts most of the way done." }
       ],
+      promises: [
+        { title: "Accurate by default", text: "You can't draw a quantity in Topo that doesn't match Apex without a warning on both sides." },
+        { title: "Speed", text: "A job's first plates are one button press. That used to take a day or two." },
+        { title: "Blocks you can trust", text: "Every schematic block comes from one shared, editable source. Fix a block once and every active job gets a prompt to take the update." },
+        { title: "Near-zero manual entry", text: "In Vectorworks every room box, device and plate is typed by hand. Topo's start-up wizard suggests a room and rack for every line in the parts list." },
+        { title: "Standards built in", text: "Names, locations, plates, schedules, room names and notes all default from company-wide rules, so engineers think harder about each job's real problems and less about repetitive work that's easy to get wrong." },
+        { title: "One design", text: "IDs in Topo start with everything already in the CDs, so CDs and IDs are more connected than ever." },
+        { title: "Rack and power accuracy", text: "What every device plugs into, wattage per UPS and circuit, BTU/h per rack and room, and receptacles used and free on every power device." }
+      ],
       mission:
         "A browser-based tool that replaces ConnectCAD and Vectorworks for ID schematics: schematics without sheet limits, rack elevations, plates and cut sheets, patch bay labels, pull sheets and schedules, and drawing-set revisions. A priced parts list from Apex becomes a drawing, and the link back to Apex catches what was actually ordered. v1 is the point Topo replaces ConnectCAD; field apps come after the browser is proven.",
       objectives: [
         { text: "Browser prototype previewed to the team", done: true, owner: "Travis", step: "question" },
         { text: "Skeleton shown to engineers for feedback", done: true, owner: "Travis", step: "question" },
         { text: "Import 1,425 blocks from ConnectCAD", done: true, owner: "Travis", step: "delete" },
-        { text: "Patch bay labels derived from the wiring", done: true, owner: "Travis", step: "automate" },
-        { text: "Plans, DXF and drawing-set revisions (90%)", done: false, owner: "Travis", step: "simplify" },
-        { text: "Plates and cut sheets (90%)", done: false, owner: "Travis", step: "simplify" },
+        { text: "Initial plates for a whole job in one button press", done: true, owner: "Travis", step: "automate" },
+        { text: "Plates auto-number from rules, sharing one field with the schematic so they can't drift or carry a typo", done: true, owner: "Travis", step: "simplify" },
+        { text: "One editable source for every block; active jobs get a warning bar to take a corrected block", done: true, owner: "Travis", step: "simplify" },
+        { text: "Project wizard suggests a room and rack for every parts-list line", done: true, owner: "Travis", step: "automate" },
+        { text: "Rooms defined from the CDs once and tracked through, not re-entered on every page", done: true, owner: "Travis", step: "delete" },
+        { text: "Quantity checks across CDs, Topo and Apex, with a prompt to the SA (or the next change order) to add the difference", done: false, owner: "Travis & Tyson", step: "automate" },
+        { text: "Data patch bay labels: derived from the wiring; populating and printing still to test", done: false, owner: "Travis", step: "automate" },
+        { text: "Cleaner drawing import, and a plan / RCP view with devices", done: false, owner: "Travis", step: "simplify" },
+        { text: "Plate cut sheets assembly can cut and laser from, matching Vectorworks linework", done: false, owner: "Travis", step: "simplify" },
         { text: "Parts list to drawing, with the Apex link and room matching (73%)", done: false, owner: "Travis", step: "automate" },
         { text: "Two read-only fields on the Apex project lines endpoint for Topo", done: false, owner: "Tyson", step: "automate" },
-        { text: "Schedules: pull sheet, gear list, IP schedule, client-facing PDER (53%)", done: false, owner: "Travis", step: "automate" },
-        { text: "Schematic ready to issue (51%)", done: false, owner: "Travis", step: "simplify" },
+        { text: "Pull sheet and IP schedule (not started yet), gear list and client-facing PDER", done: false, owner: "Travis", step: "automate" },
+        { text: "Schematic drawing workflow: drawing lines, edge cases like deleting a wired block, look and feel, and the export clients and install use", done: false, owner: "Travis", step: "simplify" },
         { text: "Platform: shared model store, live multi-user edits (41%)", done: false, owner: "Travis", step: "accelerate" },
-        { text: "Release: draw one real job end to end, train the engineers, installer works from a Topo set", done: false, owner: "Travis", step: "accelerate" },
-        { text: "iOS and Android field apps, after the browser is proven", done: false, owner: "Travis", step: "accelerate" },
+        { text: "Release: run about 3 more jobs end to end, train the engineers, installer works from a Topo set", done: false, owner: "Travis", step: "accelerate" },
+        { text: "Mobile app so install can download plans (not started)", done: false, owner: "Travis", step: "accelerate" },
         { text: "Parts list generates drawings about 80% complete", done: false, owner: "Travis", step: "automate" },
         { text: "Measure drawing hours on a real job, before and after Topo", done: false, owner: "Travis", step: "question" },
         { text: "Clients open and update the live model instead of receiving a PDF", done: false, owner: "Travis", step: "delete" }
@@ -375,6 +392,7 @@ window.BLACKOPS = {
         { name: "Field apps", start: "2026-11-09", end: "2027-02-26" }
       ],
       risks: [
+        { text: "The hands-on drawing workflow is the least built and tested part; about 3 more jobs end to end are needed before 7 people use it", sev: "high" },
         { text: "11 items blocked, most waiting on decisions, exports or reviews from Travis", sev: "high" },
         { text: "38 items (117 h) finished and waiting for review", sev: "med" },
         { text: "Others are building browser system maps too (MxU teased one on 09/24)", sev: "med" },
@@ -382,6 +400,7 @@ window.BLACKOPS = {
         { text: "The release work (training, a real job, field use) is where tools fail; 22 of its 23 hours are still ahead", sev: "med" }
       ],
       intel: [
+        { date: "2026-10-09", text: "Travis's Topo update: the behind-the-scenes engine is close to fully working on the first test job. Apex parts flow in and are classified by room, device type, rack units and rack against the CDs, with warnings when pricing and drawings disagree (one rack drawn but two priced, four subs priced but twelve drawn). Plates auto-number and the first set is one button. Left: the drawing workflow itself, cleaner drawing import and a plan view, plate cut sheets, pull sheet and IP schedule, patch bay label printing, a mobile app, and about 3 more jobs end to end.", doc: "Topo update from Travis" },
         { date: "2026-10-05", text: "Travis is back on Topo this week after a month deep in project work. Page loads went from 10+ seconds to under one; next is testing every button end to end: importing blocks from Apex, auto-naming, wiring, and fields filling in on the schematics.", slack: "p1791215452607679" },
         { date: "2026-09-28", text: "Leadership confirmed hiring a dedicated Topo team. Capacity planning expects Topo to free engineering hours; the size of the savings is still to be modeled.", doc: "Capacity & Revenue Strategy, 28 Sep" },
         { date: "2026-09-25", text: "Release plan: 240 h left to v1, about 6 working weeks. 60% done by hours, 441 of 527 items closed, 11 blocked.", doc: "Topo Release Plan" },

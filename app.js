@@ -586,6 +586,7 @@
       <div class="d-sec vt"><h3><span class="d-step">01</span>Vision</h3><p class="vision">${redact(op.vision)}</p>
         ${op.shift ? `<div class="shift"><div><span class="label">From</span><p>${redact(op.shift.from)}</p></div><span class="shift-arrow" aria-hidden="true">→</span><div><span class="label">To</span><p>${redact(op.shift.to)}</p></div></div>` : ""}
         ${(op.targets || []).length ? `<div class="targets">${op.targets.map((t) => `<div class="target"><strong>${esc(t.value)}</strong><b>${esc(t.label)}</b>${t.detail ? `<span>${redact(t.detail)}</span>` : ""}</div>`).join("")}</div>` : ""}
+        ${(op.promises || []).length ? `<div class="promises"><span class="label">What ${esc(op.codename.charAt(0) + op.codename.slice(1).toLowerCase())} changes</span><ol>${op.promises.map((pr, i) => `<li><span class="num">${String(i + 1).padStart(2, "0")}</span><b>${esc(pr.title)}</b><p>${redact(pr.text)}</p></li>`).join("")}</ol></div>` : ""}
       </div>
 
       <div class="d-sec"><h3><span class="d-step">02</span>Now</h3>
